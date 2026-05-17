@@ -16,7 +16,7 @@ npm install
 
 ## Configure local data
 
-The app can run with built-in sample movement data. To use a Google Sheets CSV export instead, copy `.env.example` to `.env.local` and set `GOOGLE_SHEETS_CSV_URL`.
+The app can run with built-in sample movement data. To use a Google Sheets CSV export instead, copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_GOOGLE_SHEETS_CSV_URL` to a publicly readable CSV URL (the browser fetches it directly).
 
 The CSV must include: `House Name`, `Floor`, `Unit`, `Entry Time`, `Exit Time`, `Pax Count`, `Luggage Count`, `Staff Nos of 民安隊 staff`, and `Medical Necessity`. `House Name` replaces the previous block field for filtering.
 
@@ -28,7 +28,7 @@ Useful local environment values:
 
 | Variable | Purpose | Default behavior |
 | --- | --- | --- |
-| `GOOGLE_SHEETS_CSV_URL` | CSV source for movement records | Uses sample data when empty |
+| `NEXT_PUBLIC_GOOGLE_SHEETS_CSV_URL` | Public CSV URL for movement records | Uses sample data when empty |
 | `NEXT_PUBLIC_DATA_REFRESH_MS` | Browser refresh interval for movement data | Set in `.env.example` |
 | `NEXT_PUBLIC_SLIDE_DURATION_MS` | Time before advancing slides | Set in `.env.example` |
 
@@ -66,11 +66,11 @@ npm run build
 
 ## Deploy to GitHub Pages
 
-> **Important caveat:** GitHub Pages serves only static files. The server-side `/api/movements` route (which proxies Google Sheets data) **will not run** on GitHub Pages. You must use the public CSV endpoint instead.
+The app is a fully static Next.js export. The Google Sheets CSV is fetched directly by the browser at runtime (there is no server-side API route).
 
 ### Prerequisites
 
-1. Your Google Sheet must be published as a CSV (File → Share → Publish to web → CSV).
+1. Publish your Google Sheet as CSV (File → Share → Publish to web → CSV).
 2. Install the `gh-pages` helper (one-time):
    ```powershell
    npm install --save-dev gh-pages
@@ -78,68 +78,70 @@ npm run build
 
 ### 1. Configure static export
 
-Add `output: "export"` to `next.config.mjs`:
-
-```js
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  output: "export",
-};
-
-export default nextConfig;
-```
-
-If the site is hosted at a sub-path (e.g. `https://<user>.github.io/<repo>/`), also set:
-
-```js
-basePath: "/<repo>",
-```
+`next.config.mjs` already sets `output: "export"` and `basePath: "/slide-show-data-portal"`. Update `basePath` if you fork to a different repo name.
 
 ### 2. Set environment variables
 
-Because `/api/movements` is unavailable in a static export, the client must fetch the CSV directly. Set `NEXT_PUBLIC_GOOGLE_SHEETS_CSV_URL` to your public CSV URL in a `.env.production` file:
+Create a `.env.production` file (or set the variable in your CI):
 
 ```
 NEXT_PUBLIC_GOOGLE_SHEETS_CSV_URL=https://docs.google.com/spreadsheets/d/<id>/export?format=csv&gid=0
 ```
 
-The app's CSV parsing path in `src/lib/csv.ts` handles this automatically when the variable is set.
+When this variable is empty, the app falls back to the bundled sample data.
 
 ### 3. Build and deploy
 
 ```powershell
 npm run build
-npx gh-pages -d out
+npx gh-pages -d out -t true
 ```
 
-This publishes the `out/` folder to the `gh-pages` branch. On first run, enable GitHub Pages in the repository settings and point it to the `gh-pages` branch.
+`-t true` makes sure dotfiles (e.g. `.nojekyll`) are published. Add an empty `out/.nojekyll` file before publishing so GitHub Pages does not strip `_next/`:
+
+```powershell
+New-Item -ItemType File -Path out\.nojekyll -Force | Out-Null
+```
+
+On the first run, enable GitHub Pages in the repository settings and point it to the `gh-pages` branch.
 
 ### Alternative: GitHub Actions
 
-Create `.github/workflows/deploy.yml` to automate deployment on every push to `main`:
+Create `.github/workflows/deploy.yml`:
 
 ```yaml
 name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
       - run: npm ci
       - run: npm run build
         env:
           NEXT_PUBLIC_GOOGLE_SHEETS_CSV_URL: ${{ secrets.GOOGLE_SHEETS_CSV_URL }}
-      - uses: peaceiris/actions-gh-pages@v4
+      - run: touch out/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./out
+          path: ./out
+      - id: deployment
+        uses: actions/deploy-pages@v4
 ```
 
-Add `GOOGLE_SHEETS_CSV_URL` as a repository secret in Settings → Secrets and variables → Actions.
+Add `GOOGLE_SHEETS_CSV_URL` as a repository secret in **Settings → Secrets and variables → Actions**.
 

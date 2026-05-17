@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { DEFAULT_HOUSE_NAME, type Language, type MovementRecord, type ThemeMode } from "@/src/lib/models";
 import { buildFloorRows, getHouseNames, summarizeMovementRecords } from "@/src/lib/movements";
+import { normalizeMovementRows, parseCsv } from "@/src/lib/csv";
+import { sampleMovements } from "@/src/lib/sample-data";
 import { translateHouseName, translations } from "@/src/lib/i18n";
 import { useSlideshow } from "@/src/lib/hooks/use-slideshow";
 import { FloorGrid } from "./floor-grid";
@@ -11,6 +13,7 @@ import { SummarySlide } from "./summary-slide";
 
 const DATA_REFRESH_MS = Number(process.env.NEXT_PUBLIC_DATA_REFRESH_MS ?? 60_000);
 const SLIDE_DURATION_MS = Number(process.env.NEXT_PUBLIC_SLIDE_DURATION_MS ?? 15_000);
+const CSV_URL = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_CSV_URL ?? "";
 const SLIDE_COUNT = 3;
 
 type MovementResponse = {
@@ -157,9 +160,13 @@ function currentMinutes(): number {
 }
 
 async function fetchMovements(): Promise<MovementResponse> {
-  const response = await fetch("/api/movements");
-  if (!response.ok) {
-    throw new Error(`Movement API failed with status ${response.status}`);
+  if (!CSV_URL) {
+    return { records: sampleMovements };
   }
-  return response.json();
+  const response = await fetch(CSV_URL, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error(`Google Sheets CSV fetch failed with status ${response.status}`);
+  }
+  const rows = parseCsv(await response.text());
+  return { records: normalizeMovementRows(rows) };
 }

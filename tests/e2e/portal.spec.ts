@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("shows the first floor-grid slide with unit movement data and CAS staff no (default zh-Hant)", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/slide-show-data-portal/");
   await page.getByRole("button", { name: "暫停" }).click();
   // Make sure we're on slide 1 (default language is Traditional Chinese)
   await expect(page.getByRole("heading", { name: "1至16樓" })).toBeVisible();
@@ -21,7 +21,7 @@ test("shows the first floor-grid slide with unit movement data and CAS staff no 
 });
 
 test("portal opens with light theme and Traditional Chinese by default", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/slide-show-data-portal/");
   // Default theme is light
   await expect(page.locator(".kiosk-shell")).toHaveAttribute("data-theme", "light");
   // Default language is Traditional Chinese
@@ -30,7 +30,7 @@ test("portal opens with light theme and Traditional Chinese by default", async (
 });
 
 test("wires house, theme, and language controls", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/slide-show-data-portal/");
   await page.getByRole("button", { name: "暫停" }).click();
   await expect(page.getByRole("heading", { name: "1至16樓" })).toBeVisible();
 
@@ -56,7 +56,7 @@ test("wires house, theme, and language controls", async ({ page }) => {
 });
 
 test("pause stops auto-advance and prev/next navigate manually", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/slide-show-data-portal/");
   await page.getByRole("button", { name: "暫停" }).click();
   await expect(page.getByRole("heading", { name: "1至16樓" })).toBeVisible();
 
@@ -74,7 +74,7 @@ test("pause stops auto-advance and prev/next navigate manually", async ({ page }
 });
 
 test("summary slide donuts have side legend, slice labels and right-of-chart layout", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/slide-show-data-portal/");
   await page.getByRole("button", { name: "暫停" }).click();
   const nextBtn = page.locator("button.control-nav[aria-label='下一頁']");
   await nextBtn.click();
@@ -125,7 +125,7 @@ test("summary slide donuts have side legend, slice labels and right-of-chart lay
 });
 
 test("compact stats bar is visible inside slide-1 and slide-2 headers", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/slide-show-data-portal/");
   await page.getByRole("button", { name: "暫停" }).click();
 
   // Slide 1: stats bar present in header

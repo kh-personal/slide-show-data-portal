@@ -300,6 +300,7 @@ h1 {
 .summary-stats-bar--compact {
   margin-top: clamp(2px, 0.3vw, 6px);
   gap: clamp(4px, 0.5vw, 8px);
+  padding-right: 35%;
 }
 
 .summary-stats-bar--compact .metric-card {
