@@ -1,0 +1,28 @@
+## MODIFIED Requirements
+
+### Requirement: Compute summary metrics
+
+The system SHALL compute total entries, occupied movement records, total pax count, total luggage count, and warning counts for the selected house.
+
+#### Scenario: Summary slide is rendered
+
+- **WHEN** the summary slide is active
+- **THEN** the portal displays current metrics calculated from the latest movement records for the selected house
+
+### Requirement: Count excessive luggage warnings
+
+The system SHALL count excessive luggage warnings from selected-house records where luggage count is greater than 6.
+
+#### Scenario: Records include excessive luggage
+
+- **WHEN** two selected-house records have luggage counts greater than 6
+- **THEN** the summary metrics report two excessive luggage warnings
+
+### Requirement: Count moderate luggage warnings
+
+The system SHALL count moderate luggage warnings from selected-house records where luggage count is greater than 4 and less than or equal to 6.
+
+#### Scenario: Records include moderate luggage
+
+- **WHEN** three selected-house records have luggage counts of 5 or 6
+- **THEN** the summary metrics report three moderate luggage warnings

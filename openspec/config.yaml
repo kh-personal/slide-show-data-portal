@@ -1,0 +1,60 @@
+schema: spec-driven
+
+context: |
+  Project: Residential Monitoring Portal for Wang Fuk Court, Fan Shang Lou, Tai Po, Hong Kong.
+
+  Goal:
+  - Build an automatic looping fixed-kiosk display portal for 8 residential blocks:
+    Wang Yan House, Wang Do House, Wang San House, Wang Kin House, Wang Tai House,
+    Wang Cheong House, Wang Shing House, and Wang Chi House.
+  - Show one block at a time with entry/exit movements for 31 floors and 8 units per floor.
+
+  Tech stack and deployment:
+  - Framework: Next.js App Router.
+  - Hosting target: Vercel preferred; GitHub Pages acceptable if compatible.
+  - Data source: Google Sheets via Google Sheets API or CSV endpoint.
+  - Data fetching: TanStack Query with polling.
+  - Deployment mode: fixed fullscreen kiosk display.
+
+  Source data schema:
+  - Floor: integer 1-31.
+  - Unit: unit number 1-8, displayed as 01-08 where appropriate.
+  - EntryTime: HH:mm.
+  - ExitTime: HH:mm.
+  - PaxCount: integer.
+  - LuggageCount: integer, used for warning color logic.
+
+  Display behavior:
+  - The portal has 3 looping slides with a timed automatic switch, recommended every 15-30 seconds.
+  - Slide transition should be a smooth vertical slide / scroll-up animation with no white flashes or loading spinners.
+  - Slide 1 renders floors 1-16; Slide 2 renders floors 17-31; Slide 3 renders summary statistics.
+  - Floor grids render one row per floor with 8 unit squares per row.
+  - Floors are stacked visually from bottom to top, with lower floors at the bottom.
+  - Unit squares display entry time, exit time, and pax count.
+  - Luggage warning colors: purple when LuggageCount > 6, green when LuggageCount > 4, default when LuggageCount <= 4.
+  - Summary page should show real-time building statistics such as total entries today and number of units with excessive luggage warnings.
+
+  Functional requirements:
+  - Poll Google Sheets data every 60 seconds.
+  - Data refresh must continue in the background for all slides, including Slide 2 and Slide 3 while Slide 1 is active.
+  - Updated Google Sheets data should appear by the next loop cycle.
+  - Avoid reload-style transitions, blank states, or spinner flashes during normal polling.
+
+  Non-functional requirements:
+  - Optimize for 24/7 kiosk operation and avoid memory leaks from timers, polling, or animations.
+  - Use a fixed display aspect ratio such as 16:9 or 4:3 for clean fullscreen scaling.
+  - Secure Google Sheets API keys through Next.js environment variables; do not expose secrets in client code.
+
+rules:
+  proposal:
+    - Keep the proposal focused on the kiosk monitoring problem and user-visible capabilities.
+    - Include capabilities for data ingestion, slideshow display, floor grid visualization, summary metrics, and kiosk runtime behavior when relevant.
+  design:
+    - Cover data normalization from Google Sheets rows into floor/unit records.
+    - Cover polling, cache ownership, slideshow state, animation lifecycle, and no-flash rendering strategy.
+    - Cover fixed-aspect kiosk layout and color thresholds for luggage warnings.
+    - Call out how Google Sheets credentials or CSV URLs are configured securely.
+  specs:
+    - Use clear SHALL requirements with scenarios for the 3-slide loop, floor ranges, unit rendering, polling refresh, warning colors, and summary metrics.
+  tasks:
+    - Break implementation into independently verifiable steps for Next.js setup, data fetching, grid UI, slideshow animation, summary page, configuration, and validation.
