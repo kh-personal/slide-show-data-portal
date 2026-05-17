@@ -14,7 +14,7 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       NEXT_PUBLIC_SLIDE_DURATION_MS: "60000",
-      NEXT_PUBLIC_GOOGLE_SHEETS_CSV_URL: ""
+      NEXT_PUBLIC_GOOGLE_SHEETS_CSV_URL: "https://docs.google.com/spreadsheets/d/example/pub?gid=0&output=csv"
     }
   },
   projects: [

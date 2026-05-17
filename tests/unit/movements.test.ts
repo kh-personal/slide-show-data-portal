@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { FloorGrid } from "@/src/components/floor-grid";
 import { normalizeMovementRows, parseCsv } from "@/src/lib/csv";
@@ -31,6 +32,14 @@ describe("grid and warning logic", () => {
     expect(rows).toHaveLength(16);
     expect(rows[0].units).toHaveLength(8);
     expect(rows[0].units[0].unitLabel).toBe("01");
+  });
+
+  it("keeps floor-grid rows visually ascending instead of reversing them in CSS", () => {
+    const css = readFileSync("app/globals.css", "utf8");
+    const floorGridRule = css.match(/\.floor-grid\s*\{[^}]*\}/)?.[0];
+
+    expect(floorGridRule).toContain("flex-direction: column;");
+    expect(floorGridRule).not.toContain("column-reverse");
   });
 
   it("maps luggage thresholds to default, green, and purple", () => {

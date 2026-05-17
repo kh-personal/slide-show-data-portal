@@ -16,7 +16,7 @@ npm install
 
 ## Configure local data
 
-The app can run with built-in sample movement data. To use a Google Sheets CSV export instead, copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_GOOGLE_SHEETS_CSV_URL` to a publicly readable CSV URL (the browser fetches it directly).
+The app can run with built-in sample movement data. To use a Google Sheets CSV export instead, copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_GOOGLE_SHEETS_CSV_URL` to a publicly readable CSV URL (the browser fetches it directly). Each CSV fetch appends a `_cacheBust` query parameter so polling avoids reused cached responses after sheet updates.
 
 The CSV must include: `House Name`, `Floor`, `Unit`, `Entry Time`, `Exit Time`, `Pax Count`, `Luggage Count`, `Staff Nos of 民安隊 staff`, and `Medical Necessity`. `House Name` replaces the previous block field for filtering.
 
@@ -144,4 +144,3 @@ jobs:
 ```
 
 Add `GOOGLE_SHEETS_CSV_URL` as a repository secret in **Settings → Secrets and variables → Actions**.
-

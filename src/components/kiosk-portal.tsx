@@ -4,8 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { DEFAULT_HOUSE_NAME, type Language, type MovementRecord, type ThemeMode } from "@/src/lib/models";
 import { buildFloorRows, getHouseNames, summarizeMovementRecords } from "@/src/lib/movements";
-import { normalizeMovementRows, parseCsv } from "@/src/lib/csv";
-import { sampleMovements } from "@/src/lib/sample-data";
+import { fetchMovementData } from "@/src/lib/movement-data";
 import { translateHouseName, translations } from "@/src/lib/i18n";
 import { useSlideshow } from "@/src/lib/hooks/use-slideshow";
 import { FloorGrid } from "./floor-grid";
@@ -160,13 +159,5 @@ function currentMinutes(): number {
 }
 
 async function fetchMovements(): Promise<MovementResponse> {
-  if (!CSV_URL) {
-    return { records: sampleMovements };
-  }
-  const response = await fetch(CSV_URL, { cache: "no-store" });
-  if (!response.ok) {
-    throw new Error(`Google Sheets CSV fetch failed with status ${response.status}`);
-  }
-  const rows = parseCsv(await response.text());
-  return { records: normalizeMovementRows(rows) };
+  return fetchMovementData(CSV_URL);
 }

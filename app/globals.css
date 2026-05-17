@@ -179,7 +179,7 @@ h1 {
 .floor-grid {
   display: flex;
   flex: 1;
-  flex-direction: column-reverse;
+  flex-direction: column;
   gap: 4px;
   min-height: 0;
 }

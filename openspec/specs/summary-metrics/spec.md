@@ -78,3 +78,30 @@ The summary slide SHALL display four rounded-border donut charts in a 2×2 grid 
 - **WHEN** a slice represents less than 3% of the total
 - **THEN** the chart omits the per-slice annotation to avoid overlap while keeping the slice colored and present in the legend
 
+### Requirement: Default to light theme and Traditional Chinese language
+
+The system SHALL initialise with `light` theme and `zh-Hant` (Traditional Chinese) language as the default state when the kiosk portal first loads, without any user interaction.
+
+#### Scenario: Portal opens with light theme
+
+- **WHEN** a user opens the kiosk portal for the first time
+- **THEN** the portal renders with the light theme applied (`data-theme="light"` on the root element)
+
+#### Scenario: Portal opens in Traditional Chinese
+
+- **WHEN** a user opens the kiosk portal for the first time
+- **THEN** all labels, headings, and controls are rendered in Traditional Chinese
+
+### Requirement: SummaryStatsBar supports compact rendering mode
+
+The `SummaryStatsBar` component (previously `SummaryMetrics`) SHALL accept an optional `compact` boolean prop. When `compact` is `true`, the component SHALL apply a CSS modifier class that reduces the visual size of all metric cards. When `compact` is `false` or omitted, the component SHALL render at full size as before.
+
+#### Scenario: Full-size rendering on Slide 3
+
+- **WHEN** `SummaryStatsBar` renders without the `compact` prop (or with `compact={false}`)
+- **THEN** metric cards render at their standard size as displayed on the summary slide
+
+#### Scenario: Compact rendering on floor-grid slides
+
+- **WHEN** `SummaryStatsBar` renders with `compact={true}`
+- **THEN** metric cards render visually smaller via the `summary-stats-bar--compact` CSS modifier class
