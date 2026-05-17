@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+	"predeploy": "npm run build",
+	"deploy": "gh-pages -d dist",
     "dev": "next dev",
     "build": "next build",
     "test": "vitest run",
@@ -19,6 +21,7 @@
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "gh-pages": "^6.3.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.14"
   }

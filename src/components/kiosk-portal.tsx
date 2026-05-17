@@ -19,8 +19,8 @@ type MovementResponse = {
 
 export function KioskPortal() {
   const [selectedHouseName, setSelectedHouseName] = useState(DEFAULT_HOUSE_NAME);
-  const [theme, setTheme] = useState<ThemeMode>("dark");
-  const [language, setLanguage] = useState<Language>("en");
+  const [theme, setTheme] = useState<ThemeMode>("light");
+  const [language, setLanguage] = useState<Language>("zh-Hant");
   const [nowMinutes, setNowMinutes] = useState(() => currentMinutes());
   const slideshow = useSlideshow(SLIDE_COUNT, SLIDE_DURATION_MS);
 
@@ -126,6 +126,7 @@ export function KioskPortal() {
             slideNumber={labels.slideOne}
             labels={labels}
             language={language}
+            summaryMetrics={metrics}
           />
           <FloorGrid
             title={labels.floorsSeventeenToThirtyOne}
@@ -134,6 +135,7 @@ export function KioskPortal() {
             slideNumber={labels.slideTwo}
             labels={labels}
             language={language}
+            summaryMetrics={metrics}
           />
           <SummarySlide
             houseName={activeHouseName}

@@ -85,13 +85,13 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     chartDurationDistribution: "Duration Distribution",
     chartCsaInFlatDuration: "CSA Staff In-Flat Duration",
     chartCsaStaffCount: "CSA Staff Count Distribution",
-    statusNotReg: "Not Reg",
+    statusNotReg: "Not Registered",
     statusReg: "Reg",
     statusVisiting: "Visiting",
     statusCompleted: "Completed",
     noData: "No data",
     staffCountLabel: "staff",
-    minutesShort: "m"
+    minutesShort: " min"
   },
   "zh-Hant": {
     houseName: "樓宇名稱",
@@ -137,14 +137,14 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     statusCompleted: "已完成",
     noData: "無資料",
     staffCountLabel: "人",
-    minutesShort: "分"
+    minutesShort: "分鐘"
   }
 };
 
 const HOUSE_NAME_ZH: Record<string, string> = {
   "Wang Yan House": "宏仁閣",
-  "Wang Do House": "宏道閣",
-  "Wang San House": "宏新閣",
+  "Wang Tao House": "宏道閣",
+  "Wang Sun House": "宏新閣",
   "Wang Kin House": "宏建閣",
   "Wang Tai House": "宏泰閣",
   "Wang Cheong House": "宏昌閣",

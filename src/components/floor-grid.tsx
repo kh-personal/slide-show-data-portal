@@ -1,4 +1,4 @@
-import { type FloorRow, type Language } from "@/src/lib/models";
+import { type FloorRow, type Language, type SummaryMetrics as SummaryMetricsType } from "@/src/lib/models";
 import { getRoomTone } from "@/src/lib/movements";
 import {
   formatFloorLabel,
@@ -6,6 +6,7 @@ import {
   translateHouseName,
   type TranslationKey
 } from "@/src/lib/i18n";
+import { SummaryStatsBar } from "./summary-stats-bar";
 
 type FloorGridProps = {
   title: string;
@@ -14,9 +15,10 @@ type FloorGridProps = {
   slideNumber: string;
   labels: Record<TranslationKey, string>;
   language: Language;
+  summaryMetrics?: SummaryMetricsType;
 };
 
-export function FloorGrid({ title, houseName, rows, slideNumber, labels, language }: FloorGridProps) {
+export function FloorGrid({ title, houseName, rows, slideNumber, labels, language, summaryMetrics }: FloorGridProps) {
   const unitLabels = Array.from({ length: 8 }, (_, index) => formatUnitLabel(language, index + 1));
   return (
     <article className="slide">
@@ -28,6 +30,9 @@ export function FloorGrid({ title, houseName, rows, slideNumber, labels, languag
           <h1>{title}</h1>
         </div>
         <div className="timestamp">{labels.livePolling}</div>
+        {summaryMetrics ? (
+          <SummaryStatsBar metrics={summaryMetrics} labels={labels} compact />
+        ) : null}
       </header>
 
       <div className="floor-grid" aria-label={`${title} floor grid`}>

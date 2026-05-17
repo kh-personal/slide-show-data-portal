@@ -1,6 +1,6 @@
 import type { Language, MovementRecord, SummaryMetrics as SummaryMetricsType } from "@/src/lib/models";
 import { translateHouseName, type TranslationKey } from "@/src/lib/i18n";
-import { SummaryMetrics } from "./summary-metrics";
+import { SummaryStatsBar } from "./summary-stats-bar";
 import { SummaryCharts } from "./summary-charts";
 
 type SummarySlideProps = {
@@ -30,7 +30,7 @@ export function SummarySlide({
         <div className="timestamp">{labels.realTimeStats}</div>
       </header>
 
-      <SummaryMetrics metrics={metrics} labels={labels} />
+      <SummaryStatsBar metrics={metrics} labels={labels} />
       <SummaryCharts
         houseName={houseName}
         records={records}

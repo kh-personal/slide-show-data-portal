@@ -297,6 +297,25 @@ h1 {
   font-variant-numeric: tabular-nums;
 }
 
+.summary-stats-bar--compact {
+  margin-top: clamp(2px, 0.3vw, 6px);
+  gap: clamp(4px, 0.5vw, 8px);
+}
+
+.summary-stats-bar--compact .metric-card {
+  min-height: clamp(40px, 5vw, 64px);
+  padding: clamp(4px, 0.5vw, 8px);
+}
+
+.summary-stats-bar--compact .metric-label {
+  margin-bottom: 2px;
+  font-size: clamp(8px, 0.65vw, 11px);
+}
+
+.summary-stats-bar--compact .metric-value {
+  font-size: clamp(16px, 2.6vw, 38px);
+}
+
 .charts-grid {
   display: grid;
   flex: 1;

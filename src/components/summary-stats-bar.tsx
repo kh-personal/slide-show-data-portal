@@ -1,14 +1,18 @@
 import type { SummaryMetrics as SummaryMetricsType } from "@/src/lib/models";
 import type { TranslationKey } from "@/src/lib/i18n";
 
-type SummaryMetricsProps = {
+type SummaryStatsBarProps = {
   metrics: SummaryMetricsType;
   labels: Record<TranslationKey, string>;
+  compact?: boolean;
 };
 
-export function SummaryMetrics({ metrics, labels }: SummaryMetricsProps) {
+export function SummaryStatsBar({ metrics, labels, compact }: SummaryStatsBarProps) {
   return (
-    <section className="summary-grid" aria-label="Summary metrics">
+    <section
+      className={`summary-grid${compact ? " summary-stats-bar--compact" : ""}`}
+      aria-label="Summary metrics"
+    >
       <MetricCard label={labels.totalEntriesToday} value={metrics.totalEntries} />
       <MetricCard label={labels.totalPax} value={metrics.totalPax} />
       <MetricCard label={labels.totalLuggage} value={metrics.totalLuggage} />
