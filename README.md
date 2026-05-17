@@ -94,7 +94,7 @@ When this variable is empty, the app falls back to the bundled sample data.
 
 ```powershell
 npm run build
-npx gh-pages -d out -t true
+npx gh-pages -d out -t
 ```
 
 `-t true` makes sure dotfiles (e.g. `.nojekyll`) are published. Add an empty `out/.nojekyll` file before publishing so GitHub Pages does not strip `_next/`:
