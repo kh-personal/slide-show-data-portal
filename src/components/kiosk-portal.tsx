@@ -19,7 +19,7 @@ import { SummarySlide } from "./summary-slide";
 const DATA_REFRESH_MS = Number(process.env.NEXT_PUBLIC_DATA_REFRESH_MS ?? 60_000);
 const SLIDE_DURATION_MS = Number(process.env.NEXT_PUBLIC_SLIDE_DURATION_MS ?? 15_000);
 const CSV_URL = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_CSV_URL ?? "";
-const SLIDE_COUNT = 3;
+const SLIDE_COUNT = 4;
 
 type MovementResponse = {
   records: MovementRecord[];
@@ -70,11 +70,15 @@ export function KioskPortal() {
     : houseNames[0] ?? DEFAULT_HOUSE_NAME;
   const selectHouseNames = houseNames.length ? houseNames : [DEFAULT_HOUSE_NAME];
   const firstRows = useMemo(
-    () => buildFloorRows(records, 1, 16, activeHouseName, activeEntryDate, activeSession),
+    () => buildFloorRows(records, 1, 10, activeHouseName, activeEntryDate, activeSession),
     [activeEntryDate, activeHouseName, activeSession, records]
   );
   const secondRows = useMemo(
-    () => buildFloorRows(records, 17, 31, activeHouseName, activeEntryDate, activeSession),
+    () => buildFloorRows(records, 11, 20, activeHouseName, activeEntryDate, activeSession),
+    [activeEntryDate, activeHouseName, activeSession, records]
+  );
+  const thirdRows = useMemo(
+    () => buildFloorRows(records, 21, 31, activeHouseName, activeEntryDate, activeSession),
     [activeEntryDate, activeHouseName, activeSession, records]
   );
   const metrics = useMemo(
@@ -105,6 +109,7 @@ export function KioskPortal() {
     <main className="kiosk-shell" data-theme={theme}>
       <section className="kiosk-stage" aria-label="Residential Monitoring Portal">
         <div className="control-bar">
+          <div className="control-row control-row--selects">
           <label>
             {labels.entryDate}
             <select
@@ -147,6 +152,8 @@ export function KioskPortal() {
               ))}
             </select>
           </label>
+          </div>
+          <div className="control-row control-row--buttons">
           <button
             type="button"
             className="control-nav"
@@ -181,13 +188,14 @@ export function KioskPortal() {
           <button type="button" onClick={() => setLanguage(targetLanguage)}>
             {targetLanguage === "zh-Hant" ? labels.traditionalChinese : labels.english}
           </button>
+          </div>
         </div>
         <div
           className="slide-track"
           style={{ transform: `translateY(-${slideshow.activeIndex * (100 / SLIDE_COUNT)}%)` }}
         >
           <FloorGrid
-            title={labels.floorsOneToSixteen}
+            title={labels.floorsOneToTen}
             houseName={activeHouseName}
             rows={firstRows}
             slideNumber={labels.slideOne}
@@ -198,10 +206,21 @@ export function KioskPortal() {
             session={activeSession}
           />
           <FloorGrid
-            title={labels.floorsSeventeenToThirtyOne}
+            title={labels.floorsElevenToTwenty}
             houseName={activeHouseName}
             rows={secondRows}
             slideNumber={labels.slideTwo}
+            labels={labels}
+            language={language}
+            summaryMetrics={metrics}
+            entryDate={activeEntryDate}
+            session={activeSession}
+          />
+          <FloorGrid
+            title={labels.floorsTwentyOneToThirtyOne}
+            houseName={activeHouseName}
+            rows={thirdRows}
+            slideNumber={labels.slideThree}
             labels={labels}
             language={language}
             summaryMetrics={metrics}

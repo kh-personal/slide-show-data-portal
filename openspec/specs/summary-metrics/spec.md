@@ -31,7 +31,7 @@ The system SHALL count moderate luggage warnings from selected-house records whe
 
 ### Requirement: Render summary distribution charts
 
-The summary page SHALL render a Flat Status donut chart with exactly three slices: `Not Started`, `Visiting`, and `Completed`. The `Reg` slice SHALL NOT be rendered.
+The summary page SHALL render a Flat Status donut chart with exactly three slices: `Not Started`, `Visiting`, and `Completed`. The `Reg` slice SHALL NOT be rendered. Display labels SHALL use updated localized terminology while preserving the underlying three-state distribution.
 
 #### Scenario: Counts reflect three-state flat status
 
@@ -42,9 +42,20 @@ The summary page SHALL render a Flat Status donut chart with exactly three slice
 #### Scenario: Localized labels
 
 - **WHEN** the language is English
-- **THEN** the `Not Started` slice label reads `Not Started`
+- **THEN** the `Not Started` slice label reads `Not registered`
+- **AND** the `Visiting` slice label reads `Packing`
 - **WHEN** the language is Traditional Chinese
-- **THEN** the `Not Started` slice label reads `未開始`
+- **THEN** the `Not Started` slice label reads `未登記`
+- **AND** the `Visiting` slice label reads `收拾中`
+
+### Requirement: Keep summary chart within kiosk viewport
+
+The summary page SHALL constrain the Flat Status pie/donut chart and its labels so the chart and labels fit inside the visible Slide 3 content area at the target kiosk viewport.
+
+#### Scenario: Summary chart remains viewable
+
+- **WHEN** Slide 3 is displayed at the target kiosk viewport
+- **THEN** the pie/donut chart and all visible labels are contained within the slide viewport without clipping outside the visible area
 
 ### Requirement: Default to light theme and Traditional Chinese language
 

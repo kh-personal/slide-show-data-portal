@@ -6,17 +6,36 @@ Define the floor grid display and per-room cell presentation.
 
 ### Requirement: Render floor range slides
 
-The system SHALL render one floor grid slide for floors 1-16 and one floor grid slide for floors 17-31 for the selected house.
+The system SHALL render three floor grid slides for the selected house: one for floors 1-10, one for floors 11-20, and one for floors 21-31.
 
 #### Scenario: First floor grid slide is visible
 
 - **WHEN** Slide 1 is active
-- **THEN** the portal displays floors 1 through 16 for the selected house
+- **THEN** the portal displays floors 1 through 10 for the selected house
 
 #### Scenario: Second floor grid slide is visible
 
 - **WHEN** Slide 2 is active
-- **THEN** the portal displays floors 17 through 31 for the selected house
+- **THEN** the portal displays floors 11 through 20 for the selected house
+
+#### Scenario: Third floor grid slide is visible
+
+- **WHEN** Slide 3 is active
+- **THEN** the portal displays floors 21 through 31 for the selected house
+
+### Requirement: Fit all floor rows within landscape kiosk stage
+
+The floor-grid layout SHALL distribute floor rows so that all rows for a slide (up to 11 rows plus the unit header row) remain fully visible within the stage area without overlapping or clipping on any kiosk viewport whose width is greater than its height.
+
+#### Scenario: Ten-floor slide fits the stage
+
+- **WHEN** Slide 1 or Slide 2 (10 floors) is displayed on any landscape kiosk viewport (width > height)
+- **THEN** every floor row is rendered without vertical overlap and is fully contained within the stage height
+
+#### Scenario: Eleven-floor slide fits the stage
+
+- **WHEN** Slide 3 (floors 21-31, 11 floors) is displayed on any landscape kiosk viewport (width > height)
+- **THEN** every floor row is rendered without vertical overlap and is fully contained within the stage height
 
 ### Requirement: Render unit square contents
 
@@ -49,38 +68,38 @@ The system SHALL render a shared header row for units 01 through 08 and 8 unit s
 
 ### Requirement: Apply luggage warning colors
 
-The system SHALL color non-medical unit squares purple when luggage count is greater than 6, green when luggage count is greater than 4, and default when luggage count is less than or equal to 4.
+The system SHALL color unit squares purple when luggage count is greater than 6, green when luggage count is greater than 4, and default when luggage count is less than or equal to 4. Medical necessity SHALL NOT replace the unit square background with a red medical style.
 
 #### Scenario: Excessive luggage warning
 
-- **WHEN** a non-medical unit has luggage count 7
+- **WHEN** a unit has luggage count 7
 - **THEN** the unit square uses the purple warning style
 
 #### Scenario: Moderate luggage warning
 
-- **WHEN** a non-medical unit has luggage count 5
+- **WHEN** a unit has luggage count 5
 - **THEN** the unit square uses the green warning style
 
 #### Scenario: Default luggage state
 
 - **WHEN** a unit has luggage count 4
-- **THEN** the unit square uses the default style unless medical necessity applies
+- **THEN** the unit square uses the default style
 
 ### Requirement: Highlight medical necessity cells
 
-The system SHALL render unit squares with non-empty medical necessity as red cells. Medical styling SHALL take priority over full-cell luggage warning backgrounds while still preserving luggage warning visibility as a bottom-right indicator.
+The system SHALL render unit squares with non-empty medical necessity using a red cross icon in the top-right icon cluster next to the bookmark icon. Medical necessity SHALL NOT apply a red full-cell background and SHALL NOT suppress luggage warning visibility.
 
 #### Scenario: Medical unit without luggage warning
 
 - **WHEN** a unit has medical necessity and luggage count 4 or less
-- **THEN** the unit square uses the red medical style without a luggage warning indicator
+- **THEN** the unit square uses the default cell background and displays a red cross icon in the top-right icon cluster
 
 #### Scenario: Medical unit with moderate luggage warning
 
 - **WHEN** a unit has medical necessity and luggage count 5 or 6
-- **THEN** the unit square uses the red medical style and displays a green bottom-right luggage indicator
+- **THEN** the unit square uses the green warning style and displays a red cross icon in the top-right icon cluster
 
 #### Scenario: Medical unit with excessive luggage warning
 
 - **WHEN** a unit has medical necessity and luggage count greater than 6
-- **THEN** the unit square uses the red medical style and displays a purple bottom-right luggage indicator
+- **THEN** the unit square uses the purple warning style and displays a red cross icon in the top-right icon cluster

@@ -1,8 +1,4 @@
-## Purpose
-
-Define the kiosk slideshow sequence and transition behavior.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Loop three slides automatically
 
@@ -33,24 +29,6 @@ The system SHALL loop through exactly four slides: floors 1-10, floors 11-20, fl
 - **WHEN** Slide 3 renders the floors 21-31 grid
 - **THEN** the floor rows are displayed in ascending order from 21/F to 31/F
 
-### Requirement: Use upward slide transition
-
-The system SHALL transition between slides using a vertical upward transform animation.
-
-#### Scenario: Slide changes
-
-- **WHEN** the active slide changes
-- **THEN** the slide track moves vertically without showing a blank intermediate screen
-
-### Requirement: Preserve data state during slideshow
-
-The system SHALL keep all slide data available while any single slide is active.
-
-#### Scenario: Data refresh occurs on Slide 1
-
-- **WHEN** data refresh completes while Slide 1 is active
-- **THEN** Slide 2 and Slide 3 render the refreshed data when they next become active
-
 ### Requirement: Render compact stats bar on floor-grid slides
 
 The system SHALL display a compact stats bar inside the slide header of every floor-grid slide (Slides 1, 2, and 3). The bar SHALL show the same 5 summary figures as the summary slide (total entries today, total pax, total luggage, excessive luggage warnings, and moderate luggage warnings) derived from the same selected-house metrics.
@@ -74,22 +52,3 @@ The system SHALL display a compact stats bar inside the slide header of every fl
 
 - **WHEN** the movement data is refreshed
 - **THEN** the stats bar values on Slides 1, 2, and 3 update to reflect the latest computed metrics on the next render
-
-### Requirement: Stats bar uses compact visual style
-
-The stats bar rendered on floor-grid slides SHALL use a compact CSS class modifier that reduces metric card size relative to the full-size rendering on Slide 3, so that the bar does not dominate the available slide header space.
-
-#### Scenario: Compact style applied
-
-- **WHEN** the stats bar renders inside a floor-grid slide header
-- **THEN** the metric cards are visually smaller than those on Slide 3 (achieved via a `compact` prop / CSS modifier class)
-
-### Requirement: Use updated status labels across slides
-
-The system SHALL display updated flat-status labels consistently across all slideshow surfaces. English labels SHALL show `Not registered` instead of `Not Started` and `Packing` instead of `Visiting`; Traditional Chinese labels SHALL show `未登記` instead of `未開始` and `收拾中` instead of `訪問中`.
-
-#### Scenario: Floor grid and summary labels are updated
-
-- **WHEN** any slide displays flat-status labels in English or Traditional Chinese
-- **THEN** the old labels `Not Started`, `Visiting`, `未開始`, and `訪問中` are not displayed
-- **AND** the corresponding updated labels are displayed

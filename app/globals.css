@@ -82,15 +82,23 @@ button, input, textarea, select { font: inherit; }
   top: clamp(8px, 1vw, 16px);
   right: clamp(8px, 1vw, 16px);
   display: flex;
+  flex-direction: column;
   gap: 6px;
-  align-items: center;
+  align-items: stretch;
   max-width: calc(100% - 24px);
   padding: 6px 10px;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 22px;
   background: var(--panel-strong);
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow-card);
+}
+
+.control-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .control-bar label {
@@ -131,7 +139,7 @@ button, input, textarea, select { font: inherit; }
 .slide-track {
   position: relative;
   z-index: 1;
-  height: 300%;
+  height: 400%;
   transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -140,6 +148,7 @@ button, input, textarea, select { font: inherit; }
   flex-direction: column;
   height: var(--stage-height);
   min-height: 0;
+  overflow: hidden;
   padding: clamp(12px, 1.6vw, 24px);
   gap: clamp(8px, 1vw, 16px);
 }
@@ -188,12 +197,15 @@ h1 {
   flex-direction: column;
   gap: 4px;
   min-height: 0;
+  overflow: hidden;
 }
 
 .unit-header-row, .floor-row {
   display: grid;
   grid-template-columns: minmax(46px, 0.42fr) repeat(8, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
   gap: 4px;
+  flex: 1 1 0;
   min-height: 0;
 }
 
@@ -228,6 +240,8 @@ h1 {
   position: relative;
   display: grid;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
   padding: clamp(3px, 0.45vw, 8px);
   background: var(--panel);
   line-height: 1.1;

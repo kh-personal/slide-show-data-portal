@@ -10,11 +10,13 @@ export type TranslationKey =
   | "language"
   | "english"
   | "traditionalChinese"
-  | "floorsOneToSixteen"
-  | "floorsSeventeenToThirtyOne"
+  | "floorsOneToTen"
+  | "floorsElevenToTwenty"
+  | "floorsTwentyOneToThirtyOne"
   | "slideOne"
   | "slideTwo"
   | "slideThree"
+  | "slideFour"
   | "livePolling"
   | "entry"
   | "exit"
@@ -59,11 +61,13 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     language: "Language",
     english: "English",
     traditionalChinese: "繁體中文",
-    floorsOneToSixteen: "Floors 1-16",
-    floorsSeventeenToThirtyOne: "Floors 17-31",
+    floorsOneToTen: "Floors 1-10",
+    floorsElevenToTwenty: "Floors 11-20",
+    floorsTwentyOneToThirtyOne: "Floors 21-31",
     slideOne: "Slide 1",
     slideTwo: "Slide 2",
     slideThree: "Slide 3",
+    slideFour: "Slide 4",
     livePolling: "Live Google Sheets polling every 60s",
     entry: "Entry",
     exit: "Exit",
@@ -107,11 +111,13 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     language: "語言",
     english: "English",
     traditionalChinese: "繁體中文",
-    floorsOneToSixteen: "1至16樓",
-    floorsSeventeenToThirtyOne: "17至31樓",
+    floorsOneToTen: "1至10樓",
+    floorsElevenToTwenty: "11至20樓",
+    floorsTwentyOneToThirtyOne: "21至31樓",
     slideOne: "第1頁",
     slideTwo: "第2頁",
     slideThree: "第3頁",
+    slideFour: "第4頁",
     livePolling: "每60秒從 Google Sheets 更新",
     entry: "進入",
     exit: "離開",

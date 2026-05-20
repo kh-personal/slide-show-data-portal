@@ -28,7 +28,7 @@ test("shows the first floor-grid slide with unit movement data and CAS staff no 
   await page.goto("/slide-show-data-portal/");
   await page.getByRole("button", { name: "暫停" }).click();
   // Make sure we're on slide 1 (default language is Traditional Chinese)
-  await expect(page.getByRole("heading", { name: "1至16樓" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "1至10樓" })).toBeVisible();
 
   await expect(page.getByText("第1頁 / 宏仁閣")).toBeVisible();
   await expect(page.locator(".unit-header", { hasText: "01室" }).first()).toBeVisible();
@@ -72,13 +72,13 @@ test("portal opens with light theme and Traditional Chinese by default", async (
   await expect(page.locator(".kiosk-shell")).toHaveAttribute("data-theme", "light");
   // Default language is Traditional Chinese
   await expect(page.getByLabel("樓宇名稱")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "1至16樓" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "1至10樓" })).toBeVisible();
 });
 
 test("wires house, theme, and language controls", async ({ page }) => {
   await page.goto("/slide-show-data-portal/");
   await page.getByRole("button", { name: "暫停" }).click();
-  await expect(page.getByRole("heading", { name: "1至16樓" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "1至10樓" })).toBeVisible();
 
   await page.getByLabel("上午/下午").selectOption("PM");
   const houseSelect = page.getByLabel("樓宇名稱");
@@ -96,7 +96,7 @@ test("wires house, theme, and language controls", async ({ page }) => {
   // Switch to English
   await page.getByRole("button", { name: "English" }).click();
   await expect(page.getByLabel("House Name")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Floors 1-16" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Floors 1-10" })).toBeVisible();
   await expect(page.locator(".floor-label", { hasText: "1/F" }).first()).toBeVisible();
   await expect(page.locator(".unit-header", { hasText: "Unit 01" }).first()).toBeVisible();
   await expect(page.locator(".eyebrow", { hasText: "Wang Tai House" }).first()).toBeVisible();
@@ -105,25 +105,29 @@ test("wires house, theme, and language controls", async ({ page }) => {
 test("pause stops auto-advance and prev/next navigate manually", async ({ page }) => {
   await page.goto("/slide-show-data-portal/");
   await page.getByRole("button", { name: "暫停" }).click();
-  await expect(page.getByRole("heading", { name: "1至16樓" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "1至10樓" })).toBeVisible();
 
   const nextBtn = page.locator("button.control-nav[aria-label='下一頁']");
   const prevBtn = page.locator("button.control-nav[aria-label='上一頁']");
 
   await nextBtn.click();
-  await expect(page.getByRole("heading", { name: "17至31樓" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "11至20樓" })).toBeVisible();
+
+  await nextBtn.click();
+  await expect(page.getByRole("heading", { name: "21至31樓" })).toBeVisible();
 
   await nextBtn.click();
   await expect(page.getByRole("heading", { name: "樓宇總覽" })).toBeVisible();
 
   await prevBtn.click();
-  await expect(page.getByRole("heading", { name: "17至31樓" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "21至31樓" })).toBeVisible();
 });
 
 test("summary slide donuts have side legend, slice labels and right-of-chart layout", async ({ page }) => {
   await page.goto("/slide-show-data-portal/");
   await page.getByRole("button", { name: "暫停" }).click();
   const nextBtn = page.locator("button.control-nav[aria-label='下一頁']");
+  await nextBtn.click();
   await nextBtn.click();
   await nextBtn.click();
 
@@ -193,7 +197,7 @@ test("summary slide donuts have side legend, slice labels and right-of-chart lay
 test("summary metric cards use selected session labels and status backgrounds", async ({ page }) => {
   await page.goto("/slide-show-data-portal/");
   await page.getByRole("button", { name: "暫停" }).click();
-  await expect(page.getByRole("heading", { name: "1至16樓" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "1至10樓" })).toBeVisible();
 
   const header = page.locator("article.slide").first().locator(".slide-header");
   await expect(header.getByText("今日可訪單位")).toBeVisible();
@@ -211,26 +215,32 @@ test("compact stats bar is visible inside slide-1 and slide-2 headers", async ({
   await page.getByRole("button", { name: "暫停" }).click();
 
   // Slide 1: stats bar present in header
-  await expect(page.getByRole("heading", { name: "1至16樓" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "1至10樓" })).toBeVisible();
   const slide1Header = page.locator("article.slide").first().locator(".slide-header");
   await expect(slide1Header.locator(".summary-grid.summary-stats-bar--compact")).toBeVisible();
 
   // Navigate to Slide 2: stats bar also present
   const nextBtn = page.locator("button.control-nav[aria-label='下一頁']");
   await nextBtn.click();
-  await expect(page.getByRole("heading", { name: "17至31樓" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "11至20樓" })).toBeVisible();
   const slide2Header = page.locator("article.slide").nth(1).locator(".slide-header");
   await expect(slide2Header.locator(".summary-grid.summary-stats-bar--compact")).toBeVisible();
+
+  // Navigate to Slide 3: stats bar also present
+  await nextBtn.click();
+  await expect(page.getByRole("heading", { name: "21至31樓" })).toBeVisible();
+  const slide3Header = page.locator("article.slide").nth(2).locator(".slide-header");
+  await expect(slide3Header.locator(".summary-grid.summary-stats-bar--compact")).toBeVisible();
 });
 
 test("floor-grid slides display floor rows in ascending visual order", async ({ page }) => {
   await page.goto("/slide-show-data-portal/");
   await page.getByRole("button", { name: "暫停" }).click();
 
-  await expect(page.getByRole("heading", { name: "1至16樓" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "1至10樓" })).toBeVisible();
   const slide1FloorLabels = page.locator("article.slide").first().locator(".floor-row .floor-label");
   await expect(slide1FloorLabels.first()).toHaveText("1樓");
-  await expect(slide1FloorLabels.last()).toHaveText("16樓");
+  await expect(slide1FloorLabels.last()).toHaveText("10樓");
   const slide1FirstFloorBox = await slide1FloorLabels.first().boundingBox();
   const slide1LastFloorBox = await slide1FloorLabels.last().boundingBox();
   expect(slide1FirstFloorBox).not.toBeNull();
@@ -240,15 +250,108 @@ test("floor-grid slides display floor rows in ascending visual order", async ({ 
   }
 
   await page.locator("button.control-nav[aria-label='下一頁']").click();
-  await expect(page.getByRole("heading", { name: "17至31樓" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "11至20樓" })).toBeVisible();
   const slide2FloorLabels = page.locator("article.slide").nth(1).locator(".floor-row .floor-label");
-  await expect(slide2FloorLabels.first()).toHaveText("17樓");
-  await expect(slide2FloorLabels.last()).toHaveText("31樓");
+  await expect(slide2FloorLabels.first()).toHaveText("11樓");
+  await expect(slide2FloorLabels.last()).toHaveText("20樓");
   const slide2FirstFloorBox = await slide2FloorLabels.first().boundingBox();
   const slide2LastFloorBox = await slide2FloorLabels.last().boundingBox();
   expect(slide2FirstFloorBox).not.toBeNull();
   expect(slide2LastFloorBox).not.toBeNull();
   if (slide2FirstFloorBox && slide2LastFloorBox) {
     expect(slide2FirstFloorBox.y).toBeLessThan(slide2LastFloorBox.y);
+  }
+
+  await page.locator("button.control-nav[aria-label='下一頁']").click();
+  await expect(page.getByRole("heading", { name: "21至31樓" })).toBeVisible();
+  // Wait for slide transition to complete before measuring layout
+  await page.waitForTimeout(1000);
+  const slide3FloorLabels = page.locator("article.slide").nth(2).locator(".floor-row .floor-label");
+  await expect(slide3FloorLabels.first()).toHaveText("21樓");
+  await expect(slide3FloorLabels.last()).toHaveText("31樓");
+  const slide3FirstFloorBox = await slide3FloorLabels.first().boundingBox();
+  const slide3LastFloorBox = await slide3FloorLabels.last().boundingBox();
+  expect(slide3FirstFloorBox).not.toBeNull();
+  expect(slide3LastFloorBox).not.toBeNull();
+  if (slide3FirstFloorBox && slide3LastFloorBox) {
+    expect(slide3FirstFloorBox.y).toBeLessThan(slide3LastFloorBox.y);
+  }
+
+  // Verify all 11 floor rows in slide 3 fit within stage height without clipping
+  const stageBox = await page.locator(".kiosk-stage").boundingBox();
+  expect(stageBox).not.toBeNull();
+  const slide3Rows = page.locator("article.slide").nth(2).locator(".floor-row");
+  const rowCount = await slide3Rows.count();
+  expect(rowCount).toBe(11);
+  const PX_TOLERANCE = 4;
+  for (let i = 0; i < rowCount; i += 1) {
+    const rowBox = await slide3Rows.nth(i).boundingBox();
+    expect(rowBox).not.toBeNull();
+    if (stageBox && rowBox) {
+      expect(rowBox.y).toBeGreaterThanOrEqual(stageBox.y - PX_TOLERANCE);
+      expect(rowBox.y + rowBox.height).toBeLessThanOrEqual(stageBox.y + stageBox.height + PX_TOLERANCE);
+    }
+  }
+  // Ensure rows do not overlap each other
+  for (let i = 1; i < rowCount; i += 1) {
+    const prev = await slide3Rows.nth(i - 1).boundingBox();
+    const curr = await slide3Rows.nth(i).boundingBox();
+    if (prev && curr) {
+      expect(curr.y).toBeGreaterThanOrEqual(prev.y + prev.height - PX_TOLERANCE);
+    }
+  }
+});
+
+test("control bar renders two rows with selects on top and buttons below", async ({ page }) => {
+  await page.goto("/slide-show-data-portal/");
+  const rows = page.locator(".control-bar .control-row");
+  await expect(rows).toHaveCount(2);
+  const upper = rows.nth(0);
+  const lower = rows.nth(1);
+  await expect(upper.locator("select")).toHaveCount(3);
+  await expect(upper.getByLabel("進入日期")).toBeVisible();
+  await expect(upper.getByLabel("上午/下午")).toBeVisible();
+  await expect(upper.getByLabel("樓宇名稱")).toBeVisible();
+  await expect(lower.getByRole("button", { name: "上一頁" })).toBeVisible();
+  await expect(lower.getByRole("button", { name: "暫停" })).toBeVisible();
+  await expect(lower.getByRole("button", { name: "下一頁" })).toBeVisible();
+  const upperBox = await upper.boundingBox();
+  const lowerBox = await lower.boundingBox();
+  expect(upperBox).not.toBeNull();
+  expect(lowerBox).not.toBeNull();
+  if (upperBox && lowerBox) {
+    expect(lowerBox.y).toBeGreaterThanOrEqual(upperBox.y + upperBox.height - 1);
+  }
+});
+
+test("control bar dropdown does not overlap summary metric boxes", async ({ page }) => {
+  await page.goto("/slide-show-data-portal/");
+  await page.getByRole("button", { name: "暫停" }).click();
+  // Navigate to summary slide (slide 4) -> click next 3 times
+  const nextBtn = page.locator("button.control-nav[aria-label='下一頁']");
+  await nextBtn.click();
+  await nextBtn.click();
+  await nextBtn.click();
+  await page.waitForTimeout(1000);
+  // Bounding boxes of the 6 summary metric boxes on the summary slide
+  const metricCards = page.locator("article.slide").nth(3).locator(".metric-card");
+  const cardCount = await metricCards.count();
+  expect(cardCount).toBeGreaterThanOrEqual(5);
+  // Control bar upper row bottom edge must be above the top edge of every metric card.
+  // This ensures any dropdown opened from the upper row, which appears immediately below the row,
+  // cannot extend over the metric boxes when constrained to the bar's vertical placement.
+  const upperRow = page.locator(".control-bar .control-row").nth(0);
+  const upperBox = await upperRow.boundingBox();
+  expect(upperBox).not.toBeNull();
+  for (let i = 0; i < cardCount; i++) {
+    const cardBox = await metricCards.nth(i).boundingBox();
+    if (upperBox && cardBox) {
+      // Horizontal overlap check
+      const horizOverlap = upperBox.x < cardBox.x + cardBox.width && cardBox.x < upperBox.x + upperBox.width;
+      if (horizOverlap) {
+        // If horizontally overlapping, upper-row bottom must not be below card top
+        expect(upperBox.y + upperBox.height).toBeLessThanOrEqual(cardBox.y);
+      }
+    }
   }
 });
