@@ -1,5 +1,5 @@
 import { DEFAULT_HOUSE_NAME, type MovementRecord } from "./models";
-import type { VisitSession } from "./models";
+import type { MovementSession } from "./models";
 import { deriveFlatStatus } from "./movements";
 
 export type CsvRow = Record<string, string>;
@@ -71,8 +71,10 @@ export function normalizeMovementRow(row: CsvRow, index = 0): MovementRecord | n
   };
 }
 
-function normalizeSession(value: string): VisitSession {
-  return value.trim().toUpperCase() === "PM" ? "PM" : "AM";
+function normalizeSession(value: string): MovementSession {
+  const normalized = value.trim().toUpperCase();
+  if (normalized === "AM" || normalized === "PM") return normalized;
+  return "";
 }
 
 function readField(row: CsvRow, names: readonly string[]): string {

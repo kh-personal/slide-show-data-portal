@@ -15,14 +15,13 @@ import {
 
 export function getRoomTone(
   record: Partial<Pick<MovementRecord, "entryTime" | "exitTime" | "medicalNecessity">> | undefined
-): { cellTone: CellTone; showBookmark: boolean } {
+): { cellTone: CellTone; showBookmark: boolean; showMedicalIcon: boolean } {
   return {
-    cellTone: record?.medicalNecessity?.trim()
-      ? "medical"
-      : record
-        ? getVisitStateTone({ entryTime: record.entryTime ?? "", exitTime: record.exitTime ?? "" })
-        : "default",
-    showBookmark: Boolean(record)
+    cellTone: record
+      ? getVisitStateTone({ entryTime: record.entryTime ?? "", exitTime: record.exitTime ?? "" })
+      : "default",
+    showBookmark: Boolean(record),
+    showMedicalIcon: Boolean(record?.medicalNecessity?.trim())
   };
 }
 
@@ -51,15 +50,17 @@ export function getSessionOptions(records: MovementRecord[]): { entryDates: stri
   for (const record of records) {
     if (!record.entryDate.trim()) continue;
     entryDates.add(record.entryDate);
-    sessions.add(record.session);
+    if (isVisitSession(record.session)) {
+      sessions.add(record.session);
+    }
   }
   return { entryDates: [...entryDates], sessions: [...sessions] };
 }
 
 export function getSessionsForEntryDate(records: MovementRecord[], entryDate: string): VisitSession[] {
   return [...new Set(records
-    .filter((record) => record.entryDate === entryDate)
-    .map((record) => record.session))];
+    .filter((record) => record.entryDate === entryDate && isVisitSession(record.session))
+    .map((record) => record.session as VisitSession))];
 }
 
 export function getSessionHouseNames(
@@ -177,6 +178,10 @@ function matchesOptionalSession(record: MovementRecord, entryDate?: string, sess
 
 function isSelectedSession(record: MovementRecord, entryDate: string, session: VisitSession): boolean {
   return record.entryDate === entryDate && record.session === session;
+}
+
+function isVisitSession(session: MovementRecord["session"]): session is VisitSession {
+  return session === "AM" || session === "PM";
 }
 
 function sumPax(records: MovementRecord[]): number {

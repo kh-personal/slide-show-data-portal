@@ -48,7 +48,7 @@ export function FloorGrid({ title, houseName, rows, slideNumber, labels, languag
           <div className="floor-row" key={row.floor}>
             <div className="floor-label">{formatFloorLabel(language, row.floor)}</div>
             {row.units.map((cell) => {
-              const { cellTone, showBookmark } = getRoomTone(cell.record);
+              const { cellTone, showBookmark, showMedicalIcon } = getRoomTone(cell.record);
               const casNo = cell.record?.casStaffNo?.trim();
               return (
                 <div className={`unit-square warning-${cellTone}`} key={`${row.floor}-${cell.unit}`}>
@@ -66,6 +66,15 @@ export function FloorGrid({ title, houseName, rows, slideNumber, labels, languag
                       className="session-bookmark"
                       aria-label="Selected session flat"
                     />
+                  ) : null}
+                  {showMedicalIcon ? (
+                    <span
+                      className="medical-cross-icon"
+                      aria-label={labels.medicalNecessity}
+                      title={labels.medicalNecessity}
+                    >
+                      +
+                    </span>
                   ) : null}
                 </div>
               );

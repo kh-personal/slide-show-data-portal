@@ -14,9 +14,9 @@ type DonutChartProps = {
   emptyLabel: string;
 };
 
-const VIEW_X = -10;
+const VIEW_X = -70;
 const VIEW_Y = 0;
-const VIEW_W = 220;
+const VIEW_W = 340;
 const VIEW_H = 200;
 const CX = 100;
 const CY = 100;

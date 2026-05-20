@@ -86,10 +86,11 @@ describe("grid and warning logic", () => {
     ])).toEqual(["Wang Yan House", "Wang Do House", "Wang San House"]);
   });
 
-  it("uses medical cell tone and bookmark marker for medical rooms in the selected session", () => {
-    expect(getRoomTone({ medicalNecessity: "Wheelchair", luggageCount: 7 })).toEqual({
-      cellTone: "medical",
-      showBookmark: true
+  it("keeps medical rooms on visit-state tone and marks them with a medical icon", () => {
+    expect(getRoomTone({ medicalNecessity: "Wheelchair", luggageCount: 7, entryTime: "08:00", exitTime: "" })).toEqual({
+      cellTone: "active",
+      showBookmark: true,
+      showMedicalIcon: true
     });
   });
 
@@ -99,7 +100,8 @@ describe("grid and warning logic", () => {
     expect(getVisitStateTone({ entryTime: "08:00", exitTime: "09:00" })).toBe("completed");
     expect(getRoomTone({ medicalNecessity: "", luggageCount: 99, entryTime: "08:00", exitTime: "" })).toEqual({
       cellTone: "active",
-      showBookmark: true
+      showBookmark: true,
+      showMedicalIcon: false
     });
   });
 
@@ -128,6 +130,34 @@ describe("grid and warning logic", () => {
     expect(text).toContain("Entry --:--");
     expect(text).toContain("Exit --:--");
     expect(text).toContain("CAS no. CAS-9001");
+  });
+
+  it("renders medical necessity as a red cross icon instead of a medical cell class", () => {
+    const rows: FloorRow[] = [{
+      floor: 1,
+      units: [{
+        floor: 1,
+        unit: 1,
+        unitLabel: "01",
+        record: record("medical", DEFAULT_HOUSE_NAME, 1, 1, "08:00", "", 1, 1, 0, "", "Wheelchair")
+      }]
+    }];
+
+    const tree = FloorGrid({
+      title: "Test House",
+      houseName: "Wang Yan House",
+      rows,
+      slideNumber: "1",
+      labels: translations.en,
+      language: "en",
+      entryDate: "05/20/2026",
+      session: "AM"
+    });
+
+    expect(findByClass(tree, "medical-cross-icon")).toHaveLength(1);
+    expect(findByClass(tree, "session-bookmark")).toHaveLength(1);
+    expect(findByClass(tree, "unit-square")[0].props.className).toContain("warning-active");
+    expect(findByClass(tree, "unit-square")[0].props.className).not.toContain("warning-medical");
   });
 
   it("renders Chinese floor labels and unit headers when language is zh-Hant", () => {
@@ -186,6 +216,20 @@ describe("summary metrics", () => {
       completedFlats: 1,
       completedPax: 4
     });
+  });
+
+  it("excludes blank CSV session records from selected AM and PM summaries", () => {
+    const records = normalizeMovementRows(parseCsv(
+      "House Name,Floor,Unit,Entry Date,AM/PM,Entry Time,Pax Count\n" +
+      "Wang Yan House,1,1,05/20/2026,AM,08:00,1\n" +
+      "Wang Yan House,1,2,05/20/2026,PM,13:00,2\n" +
+      "Wang Yan House,1,3,05/20/2026,,09:00,99"
+    ));
+
+    expect(summarizeMovementRecords(records, DEFAULT_HOUSE_NAME, "05/20/2026", "AM").totalPaxToday).toBe(1);
+    expect(summarizeMovementRecords(records, DEFAULT_HOUSE_NAME, "05/20/2026", "PM").totalPaxToday).toBe(2);
+    expect(buildFloorRows(records, 1, 1, DEFAULT_HOUSE_NAME, "05/20/2026", "AM")[0].units[2].record).toBeUndefined();
+    expect(buildFloorRows(records, 1, 1, DEFAULT_HOUSE_NAME, "05/20/2026", "PM")[0].units[2].record).toBeUndefined();
   });
 });
 
@@ -285,6 +329,11 @@ describe("CSV movement normalization", () => {
     const csv = "House Name,Floor,Unit,Entry Time,Exit Time\nWang Yan House,3,1,08:00,";
     expect(normalizeMovementRows(parseCsv(csv))[0].flatStatus).toBe("Visiting");
   });
+
+  it("preserves blank AM/PM values so selected sessions can exclude them", () => {
+    const csv = "House Name,Floor,Unit,Entry Date,AM/PM,Entry Time\nWang Yan House,3,1,05/20/2026,,08:00";
+    expect(normalizeMovementRows(parseCsv(csv))[0].session).toBe("");
+  });
 });
 
 describe("translations and formatters", () => {
@@ -309,10 +358,10 @@ describe("translations and formatters", () => {
   });
 
   it("translates flat statuses", () => {
-    expect(translateFlatStatus("en", "Visiting")).toBe("Visiting");
-    expect(translateFlatStatus("zh-Hant", "Visiting")).toBe("訪問中");
-    expect(translateFlatStatus("en", "Not Started")).toBe("Not Started");
-    expect(translateFlatStatus("zh-Hant", "Not Started")).toBe("未開始");
+    expect(translateFlatStatus("en", "Visiting")).toBe("Packing");
+    expect(translateFlatStatus("zh-Hant", "Visiting")).toBe("收拾中");
+    expect(translateFlatStatus("en", "Not Started")).toBe("Not registered");
+    expect(translateFlatStatus("zh-Hant", "Not Started")).toBe("未登記");
   });
 });
 
@@ -375,4 +424,22 @@ function collectText(node: unknown): string {
   }
 
   return "";
+}
+
+function findByClass(node: unknown, className: string, results: { props: { className?: string } }[] = []): { props: { className?: string } }[] {
+  if (node == null || typeof node === "boolean") return results;
+  if (Array.isArray(node)) {
+    node.forEach((child) => findByClass(child, className, results));
+    return results;
+  }
+
+  if (typeof node === "object" && "props" in node) {
+    const element = node as { props?: { className?: string; children?: unknown } };
+    if (element.props?.className?.split(/\s+/).includes(className)) {
+      results.push(element as { props: { className?: string } });
+    }
+    findByClass(element.props?.children, className, results);
+  }
+
+  return results;
 }

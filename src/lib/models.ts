@@ -3,6 +3,7 @@ export const UNITS_PER_FLOOR = 8;
 
 export type FlatStatus = "Not Started" | "Visiting" | "Completed";
 export type VisitSession = "AM" | "PM";
+export type MovementSession = VisitSession | "";
 
 export const FLAT_STATUSES: readonly FlatStatus[] = ["Not Started", "Visiting", "Completed"];
 
@@ -12,7 +13,7 @@ export type MovementRecord = {
   floor: number;
   unit: number;
   entryDate: string;
-  session: VisitSession;
+  session: MovementSession;
   entryTime: string;
   exitTime: string;
   paxCount: number;
@@ -64,6 +65,6 @@ export const DURATION_BUCKETS: readonly DurationBucket[] = [
 ];
 
 export type VisitStateTone = "pending" | "active" | "completed";
-export type CellTone = "default" | VisitStateTone | "medical";
+export type CellTone = "default" | VisitStateTone;
 export type ThemeMode = "dark" | "light";
 export type Language = "en" | "zh-Hant";

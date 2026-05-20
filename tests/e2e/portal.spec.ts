@@ -42,7 +42,8 @@ test("shows the first floor-grid slide with unit movement data and CAS staff no 
 
   await expect(page.getByText("進入 08:10")).toBeVisible();
   await expect(page.locator(".unit-details", { hasText: "民安隊編號 CAS-1101" }).first()).toBeVisible();
-  await expect(page.locator(".unit-square.warning-medical").first()).toBeVisible();
+  await expect(page.locator(".unit-square.warning-medical")).toHaveCount(0);
+  await expect(page.locator(".unit-square .medical-cross-icon").first()).toBeVisible();
   await expect(page.locator(".unit-square .session-bookmark").first()).toBeVisible();
   await expect(page.locator(".unit-square.warning-purple")).toHaveCount(0);
 });
@@ -149,6 +150,10 @@ test("summary slide donuts have side legend, slice labels and right-of-chart lay
   // Per-slice annotation rendered (label + %)
   await expect(firstDonut.locator("g.donut-annotation").first()).toBeVisible();
   await expect(firstDonut.locator("g.donut-annotation text.donut-slice-label").first()).toContainText("%");
+  await expect(firstDonut).toContainText("未登記");
+  await expect(firstDonut).toContainText("收拾中");
+  await expect(firstDonut).not.toContainText("未開始");
+  await expect(firstDonut).not.toContainText("訪問中");
 
   // Legend rows include label, percent and value cells; all visible inside the card
   const firstLegendItem = firstDonut.locator(".donut-legend li").first();
@@ -166,6 +171,21 @@ test("summary slide donuts have side legend, slice labels and right-of-chart lay
     expect(rowBox).not.toBeNull();
     if (cardBox && rowBox) {
       expect(rowBox.x + rowBox.width).toBeLessThanOrEqual(cardBox.x + cardBox.width + 1);
+    }
+  }
+
+  const stageBox = await page.locator(".kiosk-stage").boundingBox();
+  expect(stageBox).not.toBeNull();
+  const visibleChartParts = page.locator(".donut-card, .donut-svg, .donut-legend, .donut-slice-label");
+  const partCount = await visibleChartParts.count();
+  for (let i = 0; i < partCount; i += 1) {
+    const partBox = await visibleChartParts.nth(i).boundingBox();
+    expect(partBox).not.toBeNull();
+    if (stageBox && partBox) {
+      expect(partBox.x).toBeGreaterThanOrEqual(stageBox.x);
+      expect(partBox.y).toBeGreaterThanOrEqual(stageBox.y);
+      expect(partBox.x + partBox.width).toBeLessThanOrEqual(stageBox.x + stageBox.width + 1);
+      expect(partBox.y + partBox.height).toBeLessThanOrEqual(stageBox.y + stageBox.height + 1);
     }
   }
 });
