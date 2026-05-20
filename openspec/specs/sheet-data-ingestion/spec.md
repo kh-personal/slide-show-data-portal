@@ -1,21 +1,29 @@
 ## Purpose
 
 Define how Google Sheets CSV rows are fetched, normalized, and refreshed for the portal.
-
 ## Requirements
-
 ### Requirement: Fetch movement data from configured sheet source
 
-The system SHALL fetch residential movement data from a server-side configured Google Sheets CSV source.
+The system SHALL fetch residential movement data from a browser-configured public Google Sheets CSV source. Each configured-source fetch SHALL append a unique cache-busting query parameter while preserving existing CSV URL query parameters.
 
 #### Scenario: CSV source is configured
 
-- **WHEN** the movement API is requested and `GOOGLE_SHEETS_CSV_URL` is configured
-- **THEN** the system fetches the CSV source and returns normalized movement records
+- **WHEN** movement data is requested and `NEXT_PUBLIC_GOOGLE_SHEETS_CSV_URL` is configured
+- **THEN** the browser fetches a cache-busted CSV URL and returns normalized movement records
+
+#### Scenario: Existing query parameters are preserved
+
+- **WHEN** the configured CSV URL already contains query parameters such as `gid=0` and `output=csv`
+- **THEN** the cache-busted request URL preserves those parameters and adds a unique `_cacheBust` parameter
+
+#### Scenario: Repeated polling requests use distinct URLs
+
+- **WHEN** two configured-source movement fetches occur
+- **THEN** each request URL contains a different `_cacheBust` value
 
 #### Scenario: CSV source is not configured
 
-- **WHEN** the movement API is requested without a configured source
+- **WHEN** movement data is requested without a configured source
 - **THEN** the system returns deterministic sample movement records suitable for local development and tests
 
 ### Requirement: Normalize sheet rows
@@ -34,27 +42,27 @@ The system SHALL normalize each sheet row into a movement record with house name
 
 ### Requirement: Derive flat status when not provided
 
-The system SHALL derive `flatStatus` from entry and exit times when the row does not provide an explicit Flat Status value.
+The system SHALL derive a record's `flatStatus` from entry and exit times using a three-state model: `Not Started`, `Visiting`, `Completed`. The legacy `Reg` and `Not Reg` values SHALL NOT be produced.
 
-#### Scenario: No entry time and no exit time
+#### Scenario: No entry and no exit time
 
-- **WHEN** entry time and exit time are both empty
-- **THEN** the record `flatStatus` is `Not Reg`
+- **WHEN** both `Entry Time` and `Exit Time` are blank
+- **THEN** the record `flatStatus` is `Not Started`
 
-#### Scenario: Entry time only
+#### Scenario: Exit time without entry time
 
-- **WHEN** entry time is set and exit time is empty
+- **WHEN** `Entry Time` is blank but `Exit Time` is present
+- **THEN** the record `flatStatus` is `Not Started`
+
+#### Scenario: Entry time without exit time
+
+- **WHEN** `Entry Time` is present and `Exit Time` is blank
 - **THEN** the record `flatStatus` is `Visiting`
 
-#### Scenario: Entry and exit time both set
+#### Scenario: Both entry and exit times
 
-- **WHEN** both entry time and exit time are set
+- **WHEN** both `Entry Time` and `Exit Time` are present
 - **THEN** the record `flatStatus` is `Completed`
-
-#### Scenario: Explicit status override
-
-- **WHEN** the row provides a recognized Flat Status value
-- **THEN** the normalized record uses that explicit status
 
 ### Requirement: Poll for fresh data
 
@@ -64,3 +72,4 @@ The system SHALL poll movement data every 60 seconds in the browser kiosk experi
 
 - **WHEN** the portal has been open for 60 seconds
 - **THEN** the client requests fresh movement data without clearing the currently displayed slide content
+

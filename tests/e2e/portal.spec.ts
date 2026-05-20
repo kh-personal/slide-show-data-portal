@@ -1,17 +1,18 @@
 import { expect, test } from "@playwright/test";
 
 const CSV_ROUTE = "**/spreadsheets/d/example/pub**";
-const MOVEMENTS_CSV = `House Name,Floor,Unit,Entry Time,Exit Time,Pax Count,Luggage Count,Staff Nos of 民安隊 staff,CSA Staff No,Medical Necessity,Flat Status
-Wang Yan House,1,1,08:10,09:05,2,3,1,CAS-1101,,
-Wang Yan House,1,2,08:15,09:20,3,5,2,CAS-1102,,
-Wang Yan House,2,8,08:22,09:35,1,7,3,CAS-1201,Wheelchair,
-Wang Yan House,8,4,08:40,10:00,4,2,0,,,
-Wang Yan House,16,6,09:00,,2,6,4,CAS-1601,,
-Wang Yan House,17,1,09:10,,1,4,2,CAS-1701,,
-Wang Yan House,24,5,09:25,,3,8,5,CAS-2401,,
-Wang Yan House,31,8,,,0,0,0,,,
-Wang Tai House,1,1,08:05,09:00,4,6,2,CAS-2001,,
-Wang Tai House,17,3,09:15,,2,8,4,CAS-2002,Oxygen,`;
+const MOVEMENTS_CSV = `House Name,Floor,Unit,Entry Date,AM/PM,Entry Time,Exit Time,Pax Count,Luggage Count,Staff Count,Staff Nos of 民安隊 staff,Medical Necessity
+Wang Yan House,1,1,05/20/2026,AM,08:10,09:05,2,3,1,CAS-1101,
+Wang Yan House,1,2,05/20/2026,AM,08:15,09:20,3,5,2,CAS-1102,
+Wang Yan House,2,8,05/20/2026,AM,08:22,09:35,1,7,3,CAS-1201,Wheelchair
+Wang Yan House,8,4,05/20/2026,AM,08:40,10:00,4,2,0,,
+Wang Yan House,16,6,05/20/2026,AM,09:00,,2,6,4,CAS-1601,
+Wang Yan House,17,1,05/20/2026,AM,09:10,,1,4,2,CAS-1701,
+Wang Yan House,24,5,05/20/2026,AM,09:25,,3,8,5,CAS-2401,
+Wang Yan House,31,8,05/20/2026,AM,,,6,0,0,,
+Wang Tai House,1,1,05/20/2026,PM,08:05,09:00,4,6,2,CAS-2001,
+Wang Tai House,17,3,05/20/2026,PM,09:15,,2,8,4,CAS-2002,Oxygen,
+Wang Do House,1,1,05/21/2026,AM,,,5,1,0,,`;
 
 test.beforeEach(async ({ page }) => {
   await page.route(CSV_ROUTE, async (route) => {
@@ -33,14 +34,17 @@ test("shows the first floor-grid slide with unit movement data and CAS staff no 
   await expect(page.locator(".unit-header", { hasText: "01室" }).first()).toBeVisible();
   await expect(page.locator(".unit-square .unit-id")).toHaveCount(0);
 
-  // Wait for movement data to load (Wang Tai House option appears only after API responds)
+  // Wait for movement data to load and session filters to populate.
+  await expect(page.getByLabel("進入日期")).toHaveValue("05/20/2026");
+  await expect(page.getByLabel("上午/下午")).toHaveValue("AM");
   const houseSelect = page.getByLabel("樓宇名稱");
-  await expect(houseSelect.locator("option", { hasText: "宏泰閣" })).toHaveCount(1);
+  await expect(houseSelect.locator("option", { hasText: "宏泰閣" })).toHaveCount(0);
 
   await expect(page.getByText("進入 08:10")).toBeVisible();
   await expect(page.locator(".unit-details", { hasText: "民安隊編號 CAS-1101" }).first()).toBeVisible();
   await expect(page.locator(".unit-square.warning-medical").first()).toBeVisible();
-  await expect(page.locator(".unit-square.warning-medical .luggage-indicator.indicator-purple").first()).toBeVisible();
+  await expect(page.locator(".unit-square .session-bookmark").first()).toBeVisible();
+  await expect(page.locator(".unit-square.warning-purple")).toHaveCount(0);
 });
 
 test("requests configured CSV with a cache-busting query parameter", async ({ page }) => {
@@ -75,9 +79,10 @@ test("wires house, theme, and language controls", async ({ page }) => {
   await page.getByRole("button", { name: "暫停" }).click();
   await expect(page.getByRole("heading", { name: "1至16樓" })).toBeVisible();
 
-  // Wait for the option to appear in the select before choosing it.
+  await page.getByLabel("上午/下午").selectOption("PM");
   const houseSelect = page.getByLabel("樓宇名稱");
   await expect(houseSelect.locator("option", { hasText: "宏泰閣" })).toHaveCount(1);
+  await expect(houseSelect.locator("option", { hasText: "宏仁閣" })).toHaveCount(0);
   await houseSelect.selectOption("Wang Tai House");
   await expect(page.getByText("第1頁 / 宏泰閣")).toBeVisible();
   await expect(page.getByText("進入 08:05")).toBeVisible();
@@ -124,9 +129,9 @@ test("summary slide donuts have side legend, slice labels and right-of-chart lay
   await expect(page.getByRole("heading", { name: "樓宇總覽" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "單位狀態" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "停留時間分佈" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "民安隊在單位時間分佈" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "民安隊人數分佈" })).toBeVisible();
-  await expect(page.locator(".donut-card")).toHaveCount(4);
+  await expect(page.getByRole("heading", { name: "民安隊在單位時間分佈" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "民安隊人數分佈" })).toHaveCount(0);
+  await expect(page.locator(".donut-card")).toHaveCount(2);
 
   const firstDonut = page.locator(".donut-card").first();
   await expect(firstDonut.locator("svg.donut-svg")).toBeVisible();
@@ -163,6 +168,22 @@ test("summary slide donuts have side legend, slice labels and right-of-chart lay
       expect(rowBox.x + rowBox.width).toBeLessThanOrEqual(cardBox.x + cardBox.width + 1);
     }
   }
+});
+
+test("summary metric cards use selected session labels and status backgrounds", async ({ page }) => {
+  await page.goto("/slide-show-data-portal/");
+  await page.getByRole("button", { name: "暫停" }).click();
+  await expect(page.getByRole("heading", { name: "1至16樓" })).toBeVisible();
+
+  const header = page.locator("article.slide").first().locator(".slide-header");
+  await expect(header.getByText("今日可訪單位")).toBeVisible();
+  await expect(header.getByText("今日總人數")).toBeVisible();
+  await expect(header.getByText("正在訪問單位")).toBeVisible();
+  await expect(header.getByText("正在訪問人數")).toBeVisible();
+  await expect(header.getByText("已完成單位")).toBeVisible();
+  await expect(header.getByText("已完成人數")).toBeVisible();
+  await expect(header.locator(".metric-card--active")).toHaveCount(2);
+  await expect(header.locator(".metric-card--completed")).toHaveCount(2);
 });
 
 test("compact stats bar is visible inside slide-1 and slide-2 headers", async ({ page }) => {

@@ -1,4 +1,4 @@
-import { type FloorRow, type Language, type SummaryMetrics as SummaryMetricsType } from "@/src/lib/models";
+import { type FloorRow, type Language, type SummaryMetrics as SummaryMetricsType, type VisitSession } from "@/src/lib/models";
 import { getRoomTone } from "@/src/lib/movements";
 import {
   formatFloorLabel,
@@ -15,6 +15,8 @@ type FloorGridProps = {
   slideNumber: string;
   labels: Record<TranslationKey, string>;
   language: Language;
+  entryDate: string;
+  session: VisitSession;
   summaryMetrics?: SummaryMetricsType;
 };
 
@@ -46,7 +48,7 @@ export function FloorGrid({ title, houseName, rows, slideNumber, labels, languag
           <div className="floor-row" key={row.floor}>
             <div className="floor-label">{formatFloorLabel(language, row.floor)}</div>
             {row.units.map((cell) => {
-              const { cellTone, luggageTone } = getRoomTone(cell.record);
+              const { cellTone, showBookmark } = getRoomTone(cell.record);
               const casNo = cell.record?.casStaffNo?.trim();
               return (
                 <div className={`unit-square warning-${cellTone}`} key={`${row.floor}-${cell.unit}`}>
@@ -59,10 +61,10 @@ export function FloorGrid({ title, houseName, rows, slideNumber, labels, languag
                       {casNo ? ` · ${labels.casStaffNo} ${casNo}` : ""}
                     </span>
                   </div>
-                  {luggageTone !== "default" ? (
+                  {showBookmark ? (
                     <span
-                      className={`luggage-indicator indicator-${luggageTone}`}
-                      aria-label={`${luggageTone} luggage warning`}
+                      className="session-bookmark"
+                      aria-label="Selected session flat"
                     />
                   ) : null}
                 </div>

@@ -6,7 +6,7 @@ describe("movement data fetching", () => {
     const fetchedUrls: string[] = [];
     const fetchCsv = async (input: string | URL | Request) => {
       fetchedUrls.push(String(input));
-      return new Response("House Name,Floor,Unit,Entry Time\nWang Yan House,1,1,08:00");
+      return new Response("House Name,Floor,Unit,Entry Date,AM/PM,Entry Time\nWang Yan House,1,1,05/20/2026,AM,08:00");
     };
 
     const result = await fetchMovementData(
@@ -18,6 +18,8 @@ describe("movement data fetching", () => {
       houseName: "Wang Yan House",
       floor: 1,
       unit: 1,
+      entryDate: "05/20/2026",
+      session: "AM",
       entryTime: "08:00"
     });
     expect(fetchedUrls).toHaveLength(1);

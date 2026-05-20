@@ -1,4 +1,5 @@
 import { DEFAULT_HOUSE_NAME, type MovementRecord } from "./models";
+import type { VisitSession } from "./models";
 import { deriveFlatStatus } from "./movements";
 
 export type CsvRow = Record<string, string>;
@@ -7,12 +8,14 @@ const aliases = {
   houseName: ["housename"],
   floor: ["floor"],
   unit: ["unit"],
+  entryDate: ["entrydate"],
+  session: ["am/pm", "ampm", "session"],
   entryTime: ["entrytime", "entry", "starttime", "start"],
   exitTime: ["exittime", "exit", "completiontime", "completion"],
   paxCount: ["paxcount", "pax", "peoplecount"],
   luggageCount: ["luggagecount", "luggage", "bagcount"],
-  casStaffCount: ["staffnosof民安隊staff", "casstaffcount", "casstaff", "staffcount"],
-  casStaffNo: ["csastaffno", "casstaffno", "civilaidstaffno", "民安隊員編號"],
+  casStaffCount: ["staffcount", "casstaffcount", "casstaff"],
+  casStaffNo: ["staffnosof民安隊staff", "csastaffno", "casstaffno", "civilaidstaffno", "民安隊員編號"],
   medicalNecessity: ["medicalnecessity", "medical"],
   flatStatus: ["flatstatus", "status"]
 } as const;
@@ -44,6 +47,8 @@ export function normalizeMovementRow(row: CsvRow, index = 0): MovementRecord | n
   }
 
   const houseName = readField(row, aliases.houseName) || DEFAULT_HOUSE_NAME;
+  const entryDate = readField(row, aliases.entryDate);
+  const session = normalizeSession(readField(row, aliases.session));
   const entryTime = readField(row, aliases.entryTime);
   const exitTime = readField(row, aliases.exitTime);
   const flatStatusOverride = readField(row, aliases.flatStatus);
@@ -53,6 +58,8 @@ export function normalizeMovementRow(row: CsvRow, index = 0): MovementRecord | n
     houseName,
     floor,
     unit,
+    entryDate,
+    session,
     entryTime,
     exitTime,
     paxCount: toNumber(readField(row, aliases.paxCount)),
@@ -62,6 +69,10 @@ export function normalizeMovementRow(row: CsvRow, index = 0): MovementRecord | n
     medicalNecessity: readField(row, aliases.medicalNecessity),
     flatStatus: deriveFlatStatus(entryTime, exitTime, flatStatusOverride)
   };
+}
+
+function normalizeSession(value: string): VisitSession {
+  return value.trim().toUpperCase() === "PM" ? "PM" : "AM";
 }
 
 function readField(row: CsvRow, names: readonly string[]): string {

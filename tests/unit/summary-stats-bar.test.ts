@@ -54,30 +54,35 @@ function collectAllStrings(node: unknown, acc: string[] = []): string[] {
 }
 
 const sampleMetrics: SummaryMetrics = {
-  totalEntries: 42,
-  totalPax: 85,
-  totalLuggage: 17,
-  excessiveLuggageWarnings: 3,
-  moderateLuggageWarnings: 5
+  totalRegFlatsToday: 42,
+  totalPaxToday: 85,
+  activeFlats: 7,
+  activePax: 19,
+  completedFlats: 31,
+  completedPax: 66
 };
 
 const labels = translations["zh-Hant"];
 
 describe("SummaryStatsBar", () => {
-  it("renders all 5 metric labels and values", () => {
+  it("renders all 6 session metric labels and values", () => {
     const tree = SummaryStatsBar({ metrics: sampleMetrics, labels });
     const strings = collectAllStrings(tree).join("|");
 
-    expect(strings).toContain(labels.totalEntriesToday);
+    expect(strings).toContain(labels.totalRegFlatsToday);
     expect(strings).toContain("42");
-    expect(strings).toContain(labels.totalPax);
+    expect(strings).toContain(labels.totalPaxToday);
     expect(strings).toContain("85");
-    expect(strings).toContain(labels.totalLuggage);
-    expect(strings).toContain("17");
-    expect(strings).toContain(labels.excessiveLuggage);
-    expect(strings).toContain("3");
-    expect(strings).toContain(labels.moderateLuggage);
-    expect(strings).toContain("5");
+    expect(strings).toContain(labels.activeFlats);
+    expect(strings).toContain("7");
+    expect(strings).toContain(labels.activePax);
+    expect(strings).toContain("19");
+    expect(strings).toContain(labels.completedFlats);
+    expect(strings).toContain("31");
+    expect(strings).toContain(labels.completedPax);
+    expect(strings).toContain("66");
+    expect(strings).toContain("metric-card--active");
+    expect(strings).toContain("metric-card--completed");
   });
 
   it("does not apply compact modifier class when compact is omitted", () => {
@@ -96,7 +101,7 @@ describe("SummaryStatsBar", () => {
     const enLabels = translations["en"];
     const tree = SummaryStatsBar({ metrics: sampleMetrics, labels: enLabels });
     const strings = collectAllStrings(tree).join("|");
-    expect(strings).toContain(enLabels.totalEntriesToday);
-    expect(strings).toContain(enLabels.excessiveLuggage);
+    expect(strings).toContain(enLabels.totalRegFlatsToday);
+    expect(strings).toContain(enLabels.completedPax);
   });
 });

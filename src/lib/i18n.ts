@@ -2,6 +2,8 @@ import type { DurationBucket, FlatStatus, Language } from "./models";
 
 export type TranslationKey =
   | "houseName"
+  | "entryDate"
+  | "session"
   | "theme"
   | "dark"
   | "light"
@@ -22,11 +24,12 @@ export type TranslationKey =
   | "medicalNecessity"
   | "buildingSummary"
   | "realTimeStats"
-  | "totalEntriesToday"
-  | "totalPax"
-  | "totalLuggage"
-  | "excessiveLuggage"
-  | "moderateLuggage"
+  | "totalRegFlatsToday"
+  | "totalPaxToday"
+  | "activeFlats"
+  | "activePax"
+  | "completedFlats"
+  | "completedPax"
   | "luggageLegend"
   | "dataSourceUnavailable"
   | "unableToLoad"
@@ -38,8 +41,7 @@ export type TranslationKey =
   | "chartDurationDistribution"
   | "chartCsaInFlatDuration"
   | "chartCsaStaffCount"
-  | "statusNotReg"
-  | "statusReg"
+  | "statusNotStarted"
   | "statusVisiting"
   | "statusCompleted"
   | "noData"
@@ -49,6 +51,8 @@ export type TranslationKey =
 export const translations: Record<Language, Record<TranslationKey, string>> = {
   en: {
     houseName: "House Name",
+    entryDate: "Entry Date",
+    session: "AM/PM",
     theme: "Theme",
     dark: "Dark",
     light: "Light",
@@ -69,11 +73,12 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     medicalNecessity: "Medical Necessity",
     buildingSummary: "Building Summary",
     realTimeStats: "Real-time movement statistics",
-    totalEntriesToday: "Total entries today",
-    totalPax: "Total pax",
-    totalLuggage: "Total luggage",
-    excessiveLuggage: "Excessive luggage",
-    moderateLuggage: "Moderate luggage",
+    totalRegFlatsToday: "Total Reg Flats Today",
+    totalPaxToday: "Total Pax Today",
+    activeFlats: "Active Flats",
+    activePax: "Active Pax",
+    completedFlats: "Completed Flats",
+    completedPax: "Completed Pax",
     luggageLegend: "Purple indicates more than 6 luggage items. Green indicates more than 4 luggage items.",
     dataSourceUnavailable: "Data source unavailable",
     unableToLoad: "Unable to load movement data",
@@ -85,8 +90,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     chartDurationDistribution: "Duration Distribution",
     chartCsaInFlatDuration: "CSA Staff In-Flat Duration",
     chartCsaStaffCount: "CSA Staff Count Distribution",
-    statusNotReg: "Not Registered",
-    statusReg: "Reg",
+    statusNotStarted: "Not Started",
     statusVisiting: "Visiting",
     statusCompleted: "Completed",
     noData: "No data",
@@ -95,6 +99,8 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
   },
   "zh-Hant": {
     houseName: "樓宇名稱",
+    entryDate: "進入日期",
+    session: "上午/下午",
     theme: "主題",
     dark: "深色",
     light: "淺色",
@@ -115,11 +121,12 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     medicalNecessity: "醫療需要",
     buildingSummary: "樓宇總覽",
     realTimeStats: "即時出入統計",
-    totalEntriesToday: "今日進入總數",
-    totalPax: "總人數",
-    totalLuggage: "總行李數",
-    excessiveLuggage: "嚴重行李提示",
-    moderateLuggage: "中度行李提示",
+    totalRegFlatsToday: "今日可訪單位",
+    totalPaxToday: "今日總人數",
+    activeFlats: "正在訪問單位",
+    activePax: "正在訪問人數",
+    completedFlats: "已完成單位",
+    completedPax: "已完成人數",
     luggageLegend: "紫色代表行李超過6件。綠色代表行李超過4件。",
     dataSourceUnavailable: "資料來源未能使用",
     unableToLoad: "未能載入出入資料",
@@ -131,8 +138,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     chartDurationDistribution: "停留時間分佈",
     chartCsaInFlatDuration: "民安隊在單位時間分佈",
     chartCsaStaffCount: "民安隊人數分佈",
-    statusNotReg: "未登記",
-    statusReg: "已登記",
+    statusNotStarted: "未開始",
     statusVisiting: "訪問中",
     statusCompleted: "已完成",
     noData: "無資料",
@@ -169,8 +175,7 @@ export function formatUnitLabel(language: Language, unit: number): string {
 }
 
 const FLAT_STATUS_KEY: Record<FlatStatus, TranslationKey> = {
-  "Not Reg": "statusNotReg",
-  Reg: "statusReg",
+  "Not Started": "statusNotStarted",
   Visiting: "statusVisiting",
   Completed: "statusCompleted"
 };

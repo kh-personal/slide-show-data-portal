@@ -19,8 +19,10 @@ import {
   getDurationDistribution,
   getFlatStatusDistribution,
   getHouseNames,
-  getLuggageTone,
   getRoomTone,
+  getSessionHouseNames,
+  getSessionOptions,
+  getVisitStateTone,
   parseTimeToMinutes,
   summarizeMovementRecords
 } from "@/src/lib/movements";
@@ -42,10 +44,36 @@ describe("grid and warning logic", () => {
     expect(floorGridRule).not.toContain("column-reverse");
   });
 
-  it("maps luggage thresholds to default, green, and purple", () => {
-    expect(getLuggageTone(4)).toBe("default");
-    expect(getLuggageTone(5)).toBe("green");
-    expect(getLuggageTone(7)).toBe("purple");
+  it("derives session date and AM/PM choices in first-seen order", () => {
+    expect(getSessionOptions([
+      record("one", "Wang Yan House", 1, 1, "", "", 1, 7, 0, "", "", "05/20/2026", "AM"),
+      record("two", "Wang Do House", 1, 2, "", "", 1, 7, 0, "", "", "05/20/2026", "PM"),
+      record("three", "Wang San House", 1, 3, "", "", 1, 7, 0, "", "", "05/21/2026", "AM"),
+      record("duplicate", "Wang Kin House", 1, 4, "", "", 1, 7, 0, "", "", "05/20/2026", "AM")
+    ])).toEqual({
+      entryDates: ["05/20/2026", "05/21/2026"],
+      sessions: ["AM", "PM"]
+    });
+  });
+
+  it("does not expose sessions from rows without an entry date", () => {
+    expect(getSessionOptions([
+      record("blank-date", "Wang Yan House", 1, 1, "", "", 1, 7, 0, "", "", "", "PM")
+    ])).toEqual({
+      entryDates: [],
+      sessions: []
+    });
+  });
+
+  it("filters house names by selected entry date and AM/PM session", () => {
+    const records = [
+      record("one", "Wang Yan House", 1, 1, "", "", 1, 1, 0, "", "", "05/20/2026", "AM"),
+      record("two", "Wang Do House", 1, 2, "", "", 1, 1, 0, "", "", "05/20/2026", "PM"),
+      record("three", "Wang Tai House", 1, 3, "", "", 1, 1, 0, "", "", "05/20/2026", "AM"),
+      record("duplicate", "Wang Yan House", 2, 1, "", "", 1, 1, 0, "", "", "05/20/2026", "AM")
+    ];
+
+    expect(getSessionHouseNames(records, "05/20/2026", "AM")).toEqual(["Wang Yan House", "Wang Tai House"]);
   });
 
   it("returns stable unique house names in first-seen order", () => {
@@ -58,17 +86,20 @@ describe("grid and warning logic", () => {
     ])).toEqual(["Wang Yan House", "Wang Do House", "Wang San House"]);
   });
 
-  it("uses medical cell tone and purple luggage tone for medical rooms with excessive luggage", () => {
+  it("uses medical cell tone and bookmark marker for medical rooms in the selected session", () => {
     expect(getRoomTone({ medicalNecessity: "Wheelchair", luggageCount: 7 })).toEqual({
       cellTone: "medical",
-      luggageTone: "purple"
+      showBookmark: true
     });
   });
 
-  it("uses green cell and luggage tones for non-medical rooms with moderate luggage", () => {
-    expect(getRoomTone({ medicalNecessity: "", luggageCount: 5 })).toEqual({
-      cellTone: "green",
-      luggageTone: "green"
+  it("uses grey, yellow, and pink-blue visit-state tones instead of luggage tones", () => {
+    expect(getVisitStateTone({ entryTime: "", exitTime: "" })).toBe("pending");
+    expect(getVisitStateTone({ entryTime: "08:00", exitTime: "" })).toBe("active");
+    expect(getVisitStateTone({ entryTime: "08:00", exitTime: "09:00" })).toBe("completed");
+    expect(getRoomTone({ medicalNecessity: "", luggageCount: 99, entryTime: "08:00", exitTime: "" })).toEqual({
+      cellTone: "active",
+      showBookmark: true
     });
   });
 
@@ -89,7 +120,9 @@ describe("grid and warning logic", () => {
       rows,
       slideNumber: "1",
       labels: translations.en,
-      language: "en"
+      language: "en",
+      entryDate: "05/20/2026",
+      session: "AM"
     }));
 
     expect(text).toContain("Entry --:--");
@@ -109,7 +142,9 @@ describe("grid and warning logic", () => {
       rows,
       slideNumber: "第1頁",
       labels: translations["zh-Hant"],
-      language: "zh-Hant"
+      language: "zh-Hant",
+      entryDate: "05/20/2026",
+      session: "AM"
     }));
 
     expect(text).toContain("5樓");
@@ -121,26 +156,45 @@ describe("grid and warning logic", () => {
 describe("summary metrics", () => {
   it("summarizes active house entries, pax, luggage, and warnings", () => {
     const metrics = summarizeMovementRecords(sampleMovements);
-    expect(metrics.totalEntries).toBeGreaterThan(0);
-    expect(metrics.totalPax).toBeGreaterThan(0);
+    expect(metrics.totalRegFlatsToday).toBe(4);
+    expect(metrics.totalPaxToday).toBe(10);
   });
 
   it("does not count whitespace-only entry times as entries", () => {
     const metrics = summarizeMovementRecords([
-      record("entered", DEFAULT_HOUSE_NAME, 1, 1, "08:10"),
+      record("entered", DEFAULT_HOUSE_NAME, 1, 1, "08:10", ""),
       record("blank-entry", DEFAULT_HOUSE_NAME, 1, 2, "   ")
     ]);
 
-    expect(metrics.totalEntries).toBe(1);
+    expect(metrics.totalRegFlatsToday).toBe(2);
+    expect(metrics.activeFlats).toBe(1);
+  });
+
+  it("summarizes active and completed flats and pax for the selected session", () => {
+    const metrics = summarizeMovementRecords([
+      record("pending", DEFAULT_HOUSE_NAME, 1, 1, "", "", 2, 1, 0, "", "", "05/20/2026", "AM"),
+      record("active", DEFAULT_HOUSE_NAME, 1, 2, "08:00", "", 3, 1, 0, "", "", "05/20/2026", "AM"),
+      record("completed", DEFAULT_HOUSE_NAME, 1, 3, "08:00", "09:00", 4, 1, 0, "", "", "05/20/2026", "AM"),
+      record("other-session", DEFAULT_HOUSE_NAME, 1, 4, "08:00", "09:00", 99, 1, 0, "", "", "05/20/2026", "PM")
+    ], DEFAULT_HOUSE_NAME, "05/20/2026", "AM");
+
+    expect(metrics).toEqual({
+      totalRegFlatsToday: 3,
+      totalPaxToday: 9,
+      activeFlats: 1,
+      activePax: 3,
+      completedFlats: 1,
+      completedPax: 4
+    });
   });
 });
 
 describe("flat status derivation", () => {
-  it("derives Not Reg, Visiting, Completed, and respects override", () => {
-    expect(deriveFlatStatus("", "")).toBe("Not Reg");
+  it("derives Not Started, Visiting, Completed, and respects override", () => {
+    expect(deriveFlatStatus("", "")).toBe("Not Started");
+    expect(deriveFlatStatus("", "09:00")).toBe("Not Started");
     expect(deriveFlatStatus("08:10", "")).toBe("Visiting");
     expect(deriveFlatStatus("08:10", "09:30")).toBe("Completed");
-    expect(deriveFlatStatus("08:10", "09:30", "Reg")).toBe("Reg");
     expect(deriveFlatStatus("08:10", "09:30", "  visiting  ")).toBe("Visiting");
     expect(deriveFlatStatus("08:10", "", "garbage")).toBe("Visiting");
   });
@@ -169,15 +223,14 @@ describe("distribution helpers", () => {
     record("a", DEFAULT_HOUSE_NAME, 1, 1, "08:00", "08:20", 1, 1, 1), // Completed, 20m
     record("b", DEFAULT_HOUSE_NAME, 1, 2, "08:00", "", 1, 1, 3),       // Visiting (now=09:00 ⇒ 60m)
     record("c", DEFAULT_HOUSE_NAME, 1, 3, "07:00", "", 1, 1, 2),       // Visiting, 120m
-    record("d", DEFAULT_HOUSE_NAME, 1, 4, "", "", 0, 0, 0),             // Not Reg
+    record("d", DEFAULT_HOUSE_NAME, 1, 4, "", "", 0, 0, 0),             // Not Started
     record("e", "Other House", 1, 1, "08:00", "", 1, 1, 9)              // excluded
   ];
   const now = 9 * 60; // 09:00
 
   it("counts flat statuses for the selected house", () => {
     expect(getFlatStatusDistribution(records)).toEqual({
-      "Not Reg": 1,
-      Reg: 0,
+      "Not Started": 1,
       Visiting: 2,
       Completed: 1
     });
@@ -208,13 +261,15 @@ describe("distribution helpers", () => {
 
 describe("CSV movement normalization", () => {
   it("normalizes house name, CAS staff, CSA staff no, medical, and flat status", () => {
-    const csv = "House Name,Floor,Unit,Entry Time,Exit Time,Pax Count,Luggage Count,Staff Nos of 民安隊 staff,CSA Staff No,Medical Necessity,Flat Status\nWang Tai House,2,08,08:30,09:15,3,7,4,CAS-1234,Wheelchair,";
+    const csv = "House Name,Floor,Unit,Entry Date,AM/PM,Entry Time,Exit Time,Pax Count,Luggage Count,Staff Count,Staff Nos of 民安隊 staff,Medical Necessity\nWang Tai House,2,08,05/20/2026,PM,08:30,09:15,3,7,4,CAS-1234,Wheelchair";
 
     expect(normalizeMovementRows(parseCsv(csv))).toEqual([{
       id: "Wang Tai House-2-8-0",
       houseName: "Wang Tai House",
       floor: 2,
       unit: 8,
+      entryDate: "05/20/2026",
+      session: "PM",
       entryTime: "08:30",
       exitTime: "09:15",
       paxCount: 3,
@@ -256,6 +311,8 @@ describe("translations and formatters", () => {
   it("translates flat statuses", () => {
     expect(translateFlatStatus("en", "Visiting")).toBe("Visiting");
     expect(translateFlatStatus("zh-Hant", "Visiting")).toBe("訪問中");
+    expect(translateFlatStatus("en", "Not Started")).toBe("Not Started");
+    expect(translateFlatStatus("zh-Hant", "Not Started")).toBe("未開始");
   });
 });
 
@@ -278,13 +335,17 @@ function record(
   luggageCount = 1,
   casStaffCount = 0,
   casStaffNo = "",
-  medicalNecessity = ""
+  medicalNecessity = "",
+  entryDate = "05/20/2026",
+  session: "AM" | "PM" = "AM"
 ): MovementRecord {
   return {
     id,
     houseName,
     floor,
     unit,
+    entryDate,
+    session,
     entryTime,
     exitTime,
     paxCount,

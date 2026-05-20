@@ -13,18 +13,19 @@ export function SummaryStatsBar({ metrics, labels, compact }: SummaryStatsBarPro
       className={`summary-grid${compact ? " summary-stats-bar--compact" : ""}`}
       aria-label="Summary metrics"
     >
-      <MetricCard label={labels.totalEntriesToday} value={metrics.totalEntries} />
-      <MetricCard label={labels.totalPax} value={metrics.totalPax} />
-      <MetricCard label={labels.totalLuggage} value={metrics.totalLuggage} />
-      <MetricCard label={labels.excessiveLuggage} value={metrics.excessiveLuggageWarnings} />
-      <MetricCard label={labels.moderateLuggage} value={metrics.moderateLuggageWarnings} />
+      <MetricCard label={labels.totalRegFlatsToday} value={metrics.totalRegFlatsToday} />
+      <MetricCard label={labels.totalPaxToday} value={metrics.totalPaxToday} />
+      <MetricCard label={labels.activeFlats} value={metrics.activeFlats} tone="active" />
+      <MetricCard label={labels.activePax} value={metrics.activePax} tone="active" />
+      <MetricCard label={labels.completedFlats} value={metrics.completedFlats} tone="completed" />
+      <MetricCard label={labels.completedPax} value={metrics.completedPax} tone="completed" />
     </section>
   );
 }
 
-function MetricCard({ label, value }: { label: string; value: number }) {
+function MetricCard({ label, value, tone }: { label: string; value: number; tone?: "active" | "completed" }) {
   return (
-    <div className="metric-card">
+    <div className={`metric-card${tone ? ` metric-card--${tone}` : ""}`}>
       <p className="metric-label">{label}</p>
       <div className="metric-value">{value}</div>
     </div>

@@ -1,15 +1,18 @@
 export const DEFAULT_HOUSE_NAME = "Wang Yan House";
 export const UNITS_PER_FLOOR = 8;
 
-export type FlatStatus = "Not Reg" | "Reg" | "Visiting" | "Completed";
+export type FlatStatus = "Not Started" | "Visiting" | "Completed";
+export type VisitSession = "AM" | "PM";
 
-export const FLAT_STATUSES: readonly FlatStatus[] = ["Not Reg", "Reg", "Visiting", "Completed"];
+export const FLAT_STATUSES: readonly FlatStatus[] = ["Not Started", "Visiting", "Completed"];
 
 export type MovementRecord = {
   id: string;
   houseName: string;
   floor: number;
   unit: number;
+  entryDate: string;
+  session: VisitSession;
   entryTime: string;
   exitTime: string;
   paxCount: number;
@@ -33,11 +36,12 @@ export type FloorRow = {
 };
 
 export type SummaryMetrics = {
-  totalEntries: number;
-  totalPax: number;
-  totalLuggage: number;
-  excessiveLuggageWarnings: number;
-  moderateLuggageWarnings: number;
+  totalRegFlatsToday: number;
+  totalPaxToday: number;
+  activeFlats: number;
+  activePax: number;
+  completedFlats: number;
+  completedPax: number;
 };
 
 export type DurationBucket =
@@ -59,7 +63,7 @@ export const DURATION_BUCKETS: readonly DurationBucket[] = [
   "180+"
 ];
 
-export type LuggageTone = "default" | "green" | "purple";
-export type CellTone = LuggageTone | "medical";
+export type VisitStateTone = "pending" | "active" | "completed";
+export type CellTone = "default" | VisitStateTone | "medical";
 export type ThemeMode = "dark" | "light";
 export type Language = "en" | "zh-Hant";

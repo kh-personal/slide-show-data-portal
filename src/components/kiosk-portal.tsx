@@ -3,7 +3,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { DEFAULT_HOUSE_NAME, type Language, type MovementRecord, type ThemeMode } from "@/src/lib/models";
-import { buildFloorRows, getHouseNames, summarizeMovementRecords } from "@/src/lib/movements";
+import {
+  buildFloorRows,
+  getSessionHouseNames,
+  getSessionOptions,
+  getSessionsForEntryDate,
+  summarizeMovementRecords
+} from "@/src/lib/movements";
 import { fetchMovementData } from "@/src/lib/movement-data";
 import { translateHouseName, translations } from "@/src/lib/i18n";
 import { useSlideshow } from "@/src/lib/hooks/use-slideshow";
@@ -20,6 +26,8 @@ type MovementResponse = {
 };
 
 export function KioskPortal() {
+  const [selectedEntryDate, setSelectedEntryDate] = useState("");
+  const [selectedSession, setSelectedSession] = useState<"AM" | "PM">("AM");
   const [selectedHouseName, setSelectedHouseName] = useState(DEFAULT_HOUSE_NAME);
   const [theme, setTheme] = useState<ThemeMode>("light");
   const [language, setLanguage] = useState<Language>("zh-Hant");
@@ -40,14 +48,43 @@ export function KioskPortal() {
 
   const records = data?.records ?? [];
   const labels = translations[language];
-  const houseNames = useMemo(() => getHouseNames(records), [records]);
+  const sessionOptions = useMemo(() => getSessionOptions(records), [records]);
+  const entryDateChoices = sessionOptions.entryDates.length ? sessionOptions.entryDates : [""];
+  const activeEntryDate = sessionOptions.entryDates.includes(selectedEntryDate)
+    ? selectedEntryDate
+    : sessionOptions.entryDates[0] ?? "";
+  const sessionChoices = useMemo(
+    () => getSessionsForEntryDate(records, activeEntryDate),
+    [activeEntryDate, records]
+  );
+  const activeSession = sessionChoices.includes(selectedSession)
+    ? selectedSession
+    : sessionChoices[0] ?? "AM";
+  const sessionSelectChoices = sessionChoices.length ? sessionChoices : [activeSession];
+  const houseNames = useMemo(
+    () => getSessionHouseNames(records, activeEntryDate, activeSession),
+    [activeEntryDate, activeSession, records]
+  );
   const activeHouseName = houseNames.includes(selectedHouseName)
     ? selectedHouseName
     : houseNames[0] ?? DEFAULT_HOUSE_NAME;
   const selectHouseNames = houseNames.length ? houseNames : [DEFAULT_HOUSE_NAME];
-  const firstRows = useMemo(() => buildFloorRows(records, 1, 16, activeHouseName), [activeHouseName, records]);
-  const secondRows = useMemo(() => buildFloorRows(records, 17, 31, activeHouseName), [activeHouseName, records]);
-  const metrics = useMemo(() => summarizeMovementRecords(records, activeHouseName), [activeHouseName, records]);
+  const firstRows = useMemo(
+    () => buildFloorRows(records, 1, 16, activeHouseName, activeEntryDate, activeSession),
+    [activeEntryDate, activeHouseName, activeSession, records]
+  );
+  const secondRows = useMemo(
+    () => buildFloorRows(records, 17, 31, activeHouseName, activeEntryDate, activeSession),
+    [activeEntryDate, activeHouseName, activeSession, records]
+  );
+  const metrics = useMemo(
+    () => summarizeMovementRecords(records, activeHouseName, activeEntryDate, activeSession),
+    [activeEntryDate, activeHouseName, activeSession, records]
+  );
+  const activeSessionRecords = useMemo(
+    () => records.filter((record) => record.entryDate === activeEntryDate && record.session === activeSession),
+    [activeEntryDate, activeSession, records]
+  );
   const targetTheme = theme === "dark" ? "light" : "dark";
   const targetLanguage = language === "en" ? "zh-Hant" : "en";
 
@@ -68,6 +105,34 @@ export function KioskPortal() {
     <main className="kiosk-shell" data-theme={theme}>
       <section className="kiosk-stage" aria-label="Residential Monitoring Portal">
         <div className="control-bar">
+          <label>
+            {labels.entryDate}
+            <select
+              aria-label={labels.entryDate}
+              value={activeEntryDate}
+              onChange={(event) => setSelectedEntryDate(event.target.value)}
+            >
+              {entryDateChoices.map((entryDate) => (
+                <option key={entryDate} value={entryDate}>
+                  {entryDate || labels.noData}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            {labels.session}
+            <select
+              aria-label={labels.session}
+              value={activeSession}
+              onChange={(event) => setSelectedSession(event.target.value === "PM" ? "PM" : "AM")}
+            >
+              {sessionSelectChoices.map((session) => (
+                <option key={session} value={session}>
+                  {session}
+                </option>
+              ))}
+            </select>
+          </label>
           <label>
             {labels.houseName}
             <select
@@ -129,6 +194,8 @@ export function KioskPortal() {
             labels={labels}
             language={language}
             summaryMetrics={metrics}
+            entryDate={activeEntryDate}
+            session={activeSession}
           />
           <FloorGrid
             title={labels.floorsSeventeenToThirtyOne}
@@ -138,12 +205,14 @@ export function KioskPortal() {
             labels={labels}
             language={language}
             summaryMetrics={metrics}
+            entryDate={activeEntryDate}
+            session={activeSession}
           />
           <SummarySlide
             houseName={activeHouseName}
             metrics={metrics}
             labels={labels}
-            records={records}
+            records={activeSessionRecords}
             nowMinutes={nowMinutes}
             language={language}
           />
