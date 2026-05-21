@@ -20,8 +20,9 @@ type FloorGridProps = {
   summaryMetrics?: SummaryMetricsType;
 };
 
-export function FloorGrid({ title, houseName, rows, slideNumber, labels, language, summaryMetrics }: FloorGridProps) {
+export function FloorGrid({ title, houseName, rows, slideNumber, labels, language, entryDate, session, summaryMetrics }: FloorGridProps) {
   const unitLabels = Array.from({ length: 8 }, (_, index) => formatUnitLabel(language, index + 1));
+  const selected = { entryDate, session };
   return (
     <article className="slide">
       <header className="slide-header">
@@ -48,13 +49,17 @@ export function FloorGrid({ title, houseName, rows, slideNumber, labels, languag
           <div className="floor-row" key={row.floor}>
             <div className="floor-label">{formatFloorLabel(language, row.floor)}</div>
             {row.units.map((cell) => {
-              const { cellTone, showBookmark, showMedicalIcon } = getRoomTone(cell.record);
+              const { cellTone, showBookmark, showMedicalIcon } = getRoomTone(cell.record, selected);
               const casNo = cell.record?.casStaffNo?.trim();
+              const entryTime = cell.record?.entryTime?.trim() || "--:--";
+              const exitTime = cell.record?.exitTime?.trim() || "--:--";
               return (
                 <div className={`unit-square warning-${cellTone}`} key={`${row.floor}-${cell.unit}`}>
                   <div className="unit-details">
-                    <span>{labels.entry} {cell.record?.entryTime?.trim() || "--:--"}</span>
-                    <span>{labels.exit} {cell.record?.exitTime?.trim() || "--:--"}</span>
+                    {cell.record?.entryDate || cell.record?.session ? (
+                      <span>{[cell.record.entryDate, cell.record.session].filter(Boolean).join(" ")}</span>
+                    ) : null}
+                    <span>{labels.entry} {entryTime} | {labels.exit} {exitTime}</span>
                     <span>{labels.pax} {cell.record?.paxCount ?? 0}</span>
                     <span>
                       {labels.casStaff} {cell.record?.casStaffCount ?? 0}

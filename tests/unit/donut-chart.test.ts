@@ -85,12 +85,14 @@ describe("DonutChart", () => {
     });
 
     expect(findByType(tree, "path").length).toBe(2);
+    expect(((findByType(tree, "path")[0] as { props?: { d?: string } }).props?.d ?? "")).toContain(" A 140 140 ");
+    expect(((findByType(tree, "path")[0] as { props?: { d?: string } }).props?.d ?? "")).toContain(" A 84 84 ");
     const texts = findByType(tree, "text") as { props?: { children?: unknown } }[];
     const centre = texts.find((t) => collectStrings(t.props?.children).join("") === "5");
     expect(centre).toBeDefined();
   });
 
-  it("renders slice annotations with percentage label next to each slice", () => {
+  it("renders slice annotations close to slices with no leader lines when labels do not overlap", () => {
     const tree = DonutChart({
       title: "Status",
       emptyLabel: "No data",
@@ -101,11 +103,34 @@ describe("DonutChart", () => {
     });
 
     const polylines = findByType(tree, "polyline");
-    expect(polylines.length).toBe(2);
+    expect(polylines.length).toBe(0);
 
     const labelTexts = collectStrings(tree).join("|");
     expect(labelTexts).toContain("Visiting 60%");
     expect(labelTexts).toContain("Completed 40%");
+  });
+
+  it("renders leader lines only for labels displaced to avoid overlap", () => {
+    const tree = DonutChart({
+      title: "Duration",
+      emptyLabel: "No data",
+      data: [
+        { label: "0-30", value: 1, color: "#000" },
+        { label: "31-60", value: 1, color: "#111" },
+        { label: "61-90", value: 1, color: "#222" },
+        { label: "91-120", value: 1, color: "#333" },
+        { label: "121-150", value: 1, color: "#444" },
+        { label: "151-180", value: 1, color: "#555" },
+        { label: "180+", value: 1, color: "#666" }
+      ]
+    });
+
+    const polylines = findByType(tree, "polyline");
+    const texts = findByType(tree, "text") as { props?: { children?: unknown } }[];
+    const labelTexts = texts.filter((t) => collectStrings(t.props?.children).join("").includes("%"));
+    expect(labelTexts.length).toBe(7);
+    expect(polylines.length).toBeGreaterThan(0);
+    expect(polylines.length).toBeLessThan(7);
   });
 
   it("suppresses annotations for slices smaller than 3% of the total", () => {
@@ -118,8 +143,6 @@ describe("DonutChart", () => {
       ]
     });
 
-    const polylines = findByType(tree, "polyline");
-    expect(polylines.length).toBe(1);
     const labels = collectStrings(tree).join("|");
     expect(labels).toContain("Big 98%");
     expect(labels).not.toContain("Tiny 2%");
@@ -163,7 +186,10 @@ describe("DonutChart", () => {
       ]
     });
 
-    expect(findByType(tree, "circle").length).toBe(2);
+    const circles = findByType(tree, "circle") as { props?: { r?: number } }[];
+    expect(circles.length).toBe(2);
+    expect(circles[0].props?.r).toBe(140);
+    expect(circles[1].props?.r).toBe(84);
     expect(findByType(tree, "path").length).toBe(0);
   });
 });

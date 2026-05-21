@@ -76,6 +76,16 @@ describe("grid and warning logic", () => {
     expect(getSessionHouseNames(records, "05/20/2026", "AM")).toEqual(["Wang Yan House", "Wang Tai House"]);
   });
 
+  it("prefers selected-session floor data but falls back to other dated session records", () => {
+    const rows = buildFloorRows([
+      record("fallback", DEFAULT_HOUSE_NAME, 10, 8, "", "", 5, 0, 0, "", "", "05/21/2026", "PM"),
+      record("selected", DEFAULT_HOUSE_NAME, 10, 7, "08:00", "", 2, 0, 1, "", "", "05/20/2026", "AM")
+    ], 10, 10, DEFAULT_HOUSE_NAME, "05/20/2026", "AM");
+
+    expect(rows[0].units[6].record?.id).toBe("selected");
+    expect(rows[0].units[7].record?.id).toBe("fallback");
+  });
+
   it("returns stable unique house names in first-seen order", () => {
     expect(getHouseNames([
       record("one", "Wang Yan House", 1, 1),
@@ -100,6 +110,43 @@ describe("grid and warning logic", () => {
     expect(getVisitStateTone({ entryTime: "08:00", exitTime: "09:00" })).toBe("completed");
     expect(getRoomTone({ medicalNecessity: "", luggageCount: 99, entryTime: "08:00", exitTime: "" })).toEqual({
       cellTone: "active",
+      showBookmark: true,
+      showMedicalIcon: false
+    });
+  });
+
+  it("uses a distinct empty tone when no selected-session record exists", () => {
+    expect(getRoomTone(undefined)).toEqual({
+      cellTone: "empty",
+      showBookmark: false,
+      showMedicalIcon: false
+    });
+  });
+
+  it("returns empty tone when record's entry date/session does not match the selected period", () => {
+    const fallback = record("fallback", DEFAULT_HOUSE_NAME, 1, 1, "", "", 0, 0, 0, "", "", "05/21/2026", "PM");
+    expect(getRoomTone(fallback, { entryDate: "05/20/2026", session: "AM" })).toEqual({
+      cellTone: "empty",
+      showBookmark: false,
+      showMedicalIcon: false
+    });
+  });
+
+  it("returns filled/active/completed only for records matching the selected period", () => {
+    const filled = record("f", DEFAULT_HOUSE_NAME, 1, 1, "", "", 0, 0, 0, "", "", "05/20/2026", "AM");
+    const active = record("a", DEFAULT_HOUSE_NAME, 1, 2, "08:00", "", 0, 0, 0, "", "", "05/20/2026", "AM");
+    const completed = record("c", DEFAULT_HOUSE_NAME, 1, 3, "08:00", "09:00", 0, 0, 0, "", "", "05/20/2026", "AM");
+    const selected = { entryDate: "05/20/2026", session: "AM" as const };
+    expect(getRoomTone(filled, selected).cellTone).toBe("filled");
+    expect(getRoomTone(active, selected).cellTone).toBe("active");
+    expect(getRoomTone(completed, selected).cellTone).toBe("completed");
+  });
+
+  it("uses a filled tone for records with entry date and AM/PM but no times", () => {
+    const dateSessionOnly = record("date-session-only", DEFAULT_HOUSE_NAME, 3, 3, "", "", 0, 0, 0, "", "", "05/20/2026", "AM");
+
+    expect(getRoomTone(dateSessionOnly)).toEqual({
+      cellTone: "filled",
       showBookmark: true,
       showMedicalIcon: false
     });
@@ -130,6 +177,35 @@ describe("grid and warning logic", () => {
     expect(text).toContain("Entry --:--");
     expect(text).toContain("Exit --:--");
     expect(text).toContain("CAS no. CAS-9001");
+  });
+
+  it("renders entry date and AM/PM above entry details when present", () => {
+    const rows: FloorRow[] = [{
+      floor: 1,
+      units: [{
+        floor: 1,
+        unit: 1,
+        unitLabel: "01",
+        record: record("with-session-details", DEFAULT_HOUSE_NAME, 1, 1, "", "", 0, 0, 0, "", "", "05/20/2026", "PM")
+      }]
+    }];
+
+    const text = collectText(FloorGrid({
+      title: "Test House",
+      houseName: "Wang Yan House",
+      rows,
+      slideNumber: "1",
+      labels: translations.en,
+      language: "en",
+      entryDate: "05/20/2026",
+      session: "PM"
+    }));
+
+    expect(text).toContain("05/20/2026 PM");
+    expect(text.indexOf("05/20/2026 PM")).toBeLessThan(text.indexOf("Entry --:-- | Exit --:--"));
+    expect(text).toContain("Entry --:-- | Exit --:--");
+    expect(text).toContain("Pax 0");
+    expect(text).toContain("CAS staff 0");
   });
 
   it("renders medical necessity as a red cross icon instead of a medical cell class", () => {

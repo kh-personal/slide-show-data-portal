@@ -1,5 +1,5 @@
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   --stage-width: min(100vw, calc(100vh * 16 / 9));
   --stage-height: min(100vh, calc(100vw * 9 / 16));
   --bg-deep: #06070f;
@@ -197,7 +197,7 @@ h1 {
   flex-direction: column;
   gap: 4px;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .unit-header-row, .floor-row {
@@ -216,9 +216,11 @@ h1 {
   place-items: center;
   background: var(--panel-strong);
   color: var(--muted);
-  font-size: clamp(10px, 0.9vw, 15px);
+  overflow: hidden;
+  font-size: clamp(18px, 1.8vw, 30px);
   font-weight: 800;
   letter-spacing: 0.02em;
+  line-height: 1;
 }
 
 .unit-header-row { order: 1; }
@@ -227,13 +229,15 @@ h1 {
   display: grid;
   place-items: center;
   min-width: 0;
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #ffffff;
-  font-size: clamp(9px, 0.82vw, 14px);
+  background: linear-gradient(135deg, #bbf7d0, #bae6fd);
+  color: #0f172a;
+  font-size: clamp(18px, 1.55vw, 26px);
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.01em;
+  line-height: 1;
 }
 
 .unit-square {
@@ -245,13 +249,27 @@ h1 {
   padding: clamp(3px, 0.45vw, 8px);
   background: var(--panel);
   line-height: 1.1;
-  transition: transform 160ms ease;
+  transform-origin: center;
+  transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
-.unit-square.warning-pending { background: linear-gradient(135deg, #94a3b8, #475569); }
-.unit-square.warning-active { background: linear-gradient(135deg, #fde047, #eab308); }
-.unit-square.warning-completed { background: linear-gradient(135deg, #ec4899, #22d3ee); }
+.unit-square.warning-empty { background: #e2e8f0; }
+.unit-square.warning-filled { background: #ffffff; }
+.unit-square.warning-pending { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #0f172a; }
+.unit-square.warning-active { background: linear-gradient(135deg, #fde68a, #d97706); color: #0f172a; }
+.unit-square.warning-completed { background: linear-gradient(135deg, #bae6fd, #86efac); color: #0f172a; }
 .unit-square.warning-medical { background: linear-gradient(135deg, #ef4444, #991b1b); }
+
+.unit-square:hover {
+  z-index: 5;
+  overflow: visible;
+  transform: scale(2, 2.5);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.35);
+}
+
+.unit-square:hover .unit-details {
+  font-size: clamp(12px, 1.1vw, 18px);
+}
 
 .unit-details {
   display: grid;
@@ -262,13 +280,20 @@ h1 {
 }
 
 .kiosk-shell[data-theme="light"] .unit-details { color: rgba(15, 23, 42, 0.88); }
+.unit-square.warning-filled .unit-details,
+.unit-square.warning-pending .unit-details,
+.unit-square.warning-active .unit-details,
+.unit-square.warning-completed .unit-details,
+.kiosk-shell[data-theme="light"] .unit-square.warning-empty { color: #0f172a; }
 .kiosk-shell[data-theme="light"] .unit-square.warning-pending,
 .kiosk-shell[data-theme="light"] .unit-square.warning-active,
-.kiosk-shell[data-theme="light"] .unit-square.warning-completed,
+.kiosk-shell[data-theme="light"] .unit-square.warning-completed { color: #0f172a; }
 .kiosk-shell[data-theme="light"] .unit-square.warning-medical { color: #fff; }
+.kiosk-shell[data-theme="light"] .unit-square.warning-filled .unit-details,
+.kiosk-shell[data-theme="light"] .unit-square.warning-empty .unit-details { color: rgba(15, 23, 42, 0.72); }
 .kiosk-shell[data-theme="light"] .unit-square.warning-pending .unit-details,
 .kiosk-shell[data-theme="light"] .unit-square.warning-active .unit-details,
-.kiosk-shell[data-theme="light"] .unit-square.warning-completed .unit-details,
+.kiosk-shell[data-theme="light"] .unit-square.warning-completed .unit-details { color: rgba(15, 23, 42, 0.82); }
 .kiosk-shell[data-theme="light"] .unit-square.warning-medical .unit-details { color: rgba(255,255,255,0.92); }
 
 .session-bookmark {
@@ -420,8 +445,8 @@ h1 {
 .donut-body {
   display: grid;
   flex: 1;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-  gap: clamp(4px, 0.6vw, 10px);
+  grid-template-columns: minmax(0, 70%) minmax(0, 30%);
+  gap: 0;
   min-height: 0;
   align-items: center;
 }
@@ -451,7 +476,7 @@ h1 {
 
 .donut-slice-label {
   fill: var(--text);
-  font-size: 9px;
+  font-size: 18px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   paint-order: stroke;

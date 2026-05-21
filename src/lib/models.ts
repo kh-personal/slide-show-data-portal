@@ -65,6 +65,6 @@ export const DURATION_BUCKETS: readonly DurationBucket[] = [
 ];
 
 export type VisitStateTone = "pending" | "active" | "completed";
-export type CellTone = "default" | VisitStateTone;
+export type CellTone = "empty" | "filled" | VisitStateTone;
 export type ThemeMode = "dark" | "light";
 export type Language = "en" | "zh-Hant";

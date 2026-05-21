@@ -93,3 +93,78 @@ The system SHALL display updated flat-status labels consistently across all slid
 - **WHEN** any slide displays flat-status labels in English or Traditional Chinese
 - **THEN** the old labels `Not Started`, `Visiting`, `未開始`, and `訪問中` are not displayed
 - **AND** the corresponding updated labels are displayed
+
+### Requirement: Two-row control bar layout
+
+The kiosk control bar SHALL render its controls across two rows. The upper row SHALL contain the Entry Date, AM/PM (session), and House Name selects. The lower row SHALL contain the previous-slide button, the Pause/Play toggle, the next-slide button, the theme button, and the language button.
+
+#### Scenario: Control bar shows two rows
+
+- **WHEN** the kiosk portal is displayed
+- **THEN** the control bar contains exactly two row containers
+- **AND** the upper row contains the Entry Date, AM/PM, and House Name selects
+- **AND** the lower row contains the previous-slide, Pause/Play, next-slide, theme, and language buttons
+
+#### Scenario: Open dropdown does not overlap summary metric boxes
+
+- **WHEN** any of the upper-row selects is opened on the summary slide on a landscape kiosk viewport (width > height)
+- **THEN** the open dropdown menu does not vertically overlap any of the 6 summary metric boxes
+
+### Requirement: Summary chart area width
+
+Each donut chart on the summary slide SHALL allocate at least 70% of its donut card body width to the chart graphic area and reserve the remaining width for the legend labels.
+
+#### Scenario: Donut chart width dominates legend width
+
+- **WHEN** the summary slide displays donut charts on a landscape kiosk viewport
+- **THEN** each donut card's chart area occupies at least 70% of the donut body width
+- **AND** the legend label area remains to the right of the chart area
+
+### Requirement: Paused mouse-wheel slide navigation
+
+The kiosk slideshow SHALL allow mouse-wheel navigation between slides only while auto slideshow is paused.
+
+#### Scenario: Wheel down advances when paused
+
+- **WHEN** the slideshow is paused
+- **AND** the user scrolls the mouse wheel down over the kiosk stage
+- **THEN** the slideshow advances to the next slide
+
+#### Scenario: Wheel up goes back when paused
+
+- **WHEN** the slideshow is paused
+- **AND** the user scrolls the mouse wheel up over the kiosk stage
+- **THEN** the slideshow goes to the previous slide
+
+#### Scenario: Wheel does not navigate while playing
+
+- **WHEN** the slideshow is not paused
+- **AND** the user scrolls the mouse wheel over the kiosk stage
+- **THEN** the active slide does not change due to the wheel action
+
+### Requirement: Larger summary donut charts
+
+The summary slide SHALL keep the current donut chart size and render donut slice labels at least double the previous label font size while keeping all labels inside the chart/card area. Dense charts such as Duration Distribution SHALL spread labels with leader lines so labels do not overlap.
+
+#### Scenario: Donut labels are enlarged and contained
+
+- **WHEN** the summary slide displays donut charts
+- **THEN** each donut chart keeps its current ring radius
+- **AND** each visible slice label font size is at least 18px
+- **AND** each visible slice label remains within the donut SVG/card bounds
+
+#### Scenario: Dense donut labels do not overlap
+
+- **WHEN** the summary slide displays the Duration Distribution donut chart
+- **THEN** visible slice labels are connected to slices by leader lines
+- **AND** visible slice labels do not overlap each other
+
+### Requirement: Light-only kiosk theme
+
+The kiosk portal SHALL use light theme only and SHALL NOT display a dark/light theme toggle.
+
+#### Scenario: Theme toggle is absent
+
+- **WHEN** the kiosk portal is displayed
+- **THEN** the shell uses light theme
+- **AND** no theme toggle button is displayed

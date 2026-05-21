@@ -2,7 +2,7 @@ import type { DurationBucket, FlatStatus } from "./models";
 
 export const STATUS_COLORS: Record<FlatStatus, string> = {
   "Not Started": "#94a3b8",
-  Visiting: "#facc15",
+  Visiting: "#ca8a04",
   Completed: "#22c55e"
 };
 

@@ -14,13 +14,23 @@ import {
 } from "./models";
 
 export function getRoomTone(
-  record: Partial<Pick<MovementRecord, "entryTime" | "exitTime" | "medicalNecessity">> | undefined
+  record: Partial<Pick<MovementRecord, "entryDate" | "session" | "entryTime" | "exitTime" | "medicalNecessity">> | undefined,
+  selected?: { entryDate: string; session: VisitSession }
 ): { cellTone: CellTone; showBookmark: boolean; showMedicalIcon: boolean } {
+  if (!record) {
+    return { cellTone: "empty", showBookmark: false, showMedicalIcon: false };
+  }
+  if (selected && (record.entryDate !== selected.entryDate || record.session !== selected.session)) {
+    return { cellTone: "empty", showBookmark: false, showMedicalIcon: false };
+  }
+  const hasEntryDate = Boolean(record.entryDate?.trim());
+  const hasSession = Boolean(record.session?.trim());
+  const hasEntryTime = Boolean(record.entryTime?.trim());
   return {
-    cellTone: record
-      ? getVisitStateTone({ entryTime: record.entryTime ?? "", exitTime: record.exitTime ?? "" })
-      : "default",
-    showBookmark: Boolean(record),
+    cellTone: hasEntryDate && hasSession && !hasEntryTime
+      ? "filled"
+      : getVisitStateTone({ entryTime: record.entryTime ?? "", exitTime: record.exitTime ?? "" }),
+    showBookmark: true,
     showMedicalIcon: Boolean(record?.medicalNecessity?.trim())
   };
 }
@@ -100,11 +110,17 @@ export function buildFloorRows(
   entryDate?: string,
   session?: VisitSession
 ): FloorRow[] {
-  const recordMap = new Map(
-    records
-      .filter((record) => record.houseName === houseName && matchesOptionalSession(record, entryDate, session))
-      .map((record) => [`${record.floor}-${record.unit}`, record])
-  );
+  const selectedRecordMap = new Map<string, MovementRecord>();
+  const fallbackRecordMap = new Map<string, MovementRecord>();
+  for (const record of records) {
+    if (record.houseName !== houseName) continue;
+    const key = `${record.floor}-${record.unit}`;
+    if (matchesOptionalSession(record, entryDate, session)) {
+      selectedRecordMap.set(key, record);
+    } else if (!fallbackRecordMap.has(key) && record.entryDate.trim() && isVisitSession(record.session)) {
+      fallbackRecordMap.set(key, record);
+    }
+  }
 
   return range(floorStart, floorEnd).map((floor) => ({
     floor,
@@ -112,7 +128,7 @@ export function buildFloorRows(
       floor,
       unit,
       unitLabel: unit.toString().padStart(2, "0"),
-      record: recordMap.get(`${floor}-${unit}`)
+      record: selectedRecordMap.get(`${floor}-${unit}`) ?? fallbackRecordMap.get(`${floor}-${unit}`)
     }))
   }));
 }

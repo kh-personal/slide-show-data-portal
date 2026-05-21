@@ -1,8 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
-import { DEFAULT_HOUSE_NAME, type Language, type MovementRecord, type ThemeMode } from "@/src/lib/models";
+import { useCallback, useEffect, useMemo, useState, type WheelEvent } from "react";
+import { DEFAULT_HOUSE_NAME, type Language, type MovementRecord } from "@/src/lib/models";
 import {
   buildFloorRows,
   getSessionHouseNames,
@@ -29,7 +29,6 @@ export function KioskPortal() {
   const [selectedEntryDate, setSelectedEntryDate] = useState("");
   const [selectedSession, setSelectedSession] = useState<"AM" | "PM">("AM");
   const [selectedHouseName, setSelectedHouseName] = useState(DEFAULT_HOUSE_NAME);
-  const [theme, setTheme] = useState<ThemeMode>("light");
   const [language, setLanguage] = useState<Language>("zh-Hant");
   const [nowMinutes, setNowMinutes] = useState(() => currentMinutes());
   const slideshow = useSlideshow(SLIDE_COUNT, SLIDE_DURATION_MS);
@@ -89,12 +88,20 @@ export function KioskPortal() {
     () => records.filter((record) => record.entryDate === activeEntryDate && record.session === activeSession),
     [activeEntryDate, activeSession, records]
   );
-  const targetTheme = theme === "dark" ? "light" : "dark";
   const targetLanguage = language === "en" ? "zh-Hant" : "en";
+  const handleStageWheel = useCallback((event: WheelEvent<HTMLElement>) => {
+    if (!slideshow.paused || event.deltaY === 0) return;
+    event.preventDefault();
+    if (event.deltaY > 0) {
+      slideshow.next();
+    } else {
+      slideshow.prev();
+    }
+  }, [slideshow]);
 
   if (error && !data) {
     return (
-      <main className="kiosk-shell" data-theme={theme}>
+      <main className="kiosk-shell" data-theme="light">
         <section className="error-panel" role="alert">
           <div>
             <p className="eyebrow">{labels.dataSourceUnavailable}</p>
@@ -106,8 +113,8 @@ export function KioskPortal() {
   }
 
   return (
-    <main className="kiosk-shell" data-theme={theme}>
-      <section className="kiosk-stage" aria-label="Residential Monitoring Portal">
+    <main className="kiosk-shell" data-theme="light">
+      <section className="kiosk-stage" aria-label="Residential Monitoring Portal" onWheel={handleStageWheel}>
         <div className="control-bar">
           <div className="control-row control-row--selects">
           <label>
@@ -181,9 +188,6 @@ export function KioskPortal() {
             title={labels.nextSlide}
           >
             ▶
-          </button>
-          <button type="button" onClick={() => setTheme(targetTheme)}>
-            {labels[targetTheme]}
           </button>
           <button type="button" onClick={() => setLanguage(targetLanguage)}>
             {targetLanguage === "zh-Hant" ? labels.traditionalChinese : labels.english}

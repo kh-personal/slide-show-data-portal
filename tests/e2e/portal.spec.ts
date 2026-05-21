@@ -10,6 +10,7 @@ Wang Yan House,16,6,05/20/2026,AM,09:00,,2,6,4,CAS-1601,
 Wang Yan House,17,1,05/20/2026,AM,09:10,,1,4,2,CAS-1701,
 Wang Yan House,24,5,05/20/2026,AM,09:25,,3,8,5,CAS-2401,
 Wang Yan House,31,8,05/20/2026,AM,,,6,0,0,,
+Wang Yan House,10,8,05/21/2026,PM,,,5,0,0,,
 Wang Tai House,1,1,05/20/2026,PM,08:05,09:00,4,6,2,CAS-2001,
 Wang Tai House,17,3,05/20/2026,PM,09:15,,2,8,4,CAS-2002,Oxygen,
 Wang Do House,1,1,05/21/2026,AM,,,5,1,0,,`;
@@ -70,12 +71,14 @@ test("portal opens with light theme and Traditional Chinese by default", async (
   await page.goto("/slide-show-data-portal/");
   // Default theme is light
   await expect(page.locator(".kiosk-shell")).toHaveAttribute("data-theme", "light");
+  await expect(page.getByRole("button", { name: "深色" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "淺色" })).toHaveCount(0);
   // Default language is Traditional Chinese
   await expect(page.getByLabel("樓宇名稱")).toBeVisible();
   await expect(page.getByRole("heading", { name: "1至10樓" })).toBeVisible();
 });
 
-test("wires house, theme, and language controls", async ({ page }) => {
+test("wires house and language controls", async ({ page }) => {
   await page.goto("/slide-show-data-portal/");
   await page.getByRole("button", { name: "暫停" }).click();
   await expect(page.getByRole("heading", { name: "1至10樓" })).toBeVisible();
@@ -88,10 +91,7 @@ test("wires house, theme, and language controls", async ({ page }) => {
   await expect(page.getByText("第1頁 / 宏泰閣")).toBeVisible();
   await expect(page.getByText("進入 08:05")).toBeVisible();
 
-  // Default is light; clicking theme button switches to dark
   await expect(page.locator(".kiosk-shell")).toHaveAttribute("data-theme", "light");
-  await page.getByRole("button", { name: "深色" }).click();
-  await expect(page.locator(".kiosk-shell")).toHaveAttribute("data-theme", "dark");
 
   // Switch to English
   await page.getByRole("button", { name: "English" }).click();
@@ -132,6 +132,7 @@ test("summary slide donuts have side legend, slice labels and right-of-chart lay
   await nextBtn.click();
 
   await expect(page.getByRole("heading", { name: "樓宇總覽" })).toBeVisible();
+  await page.waitForTimeout(1000);
   await expect(page.getByRole("heading", { name: "單位狀態" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "停留時間分佈" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "民安隊在單位時間分佈" })).toHaveCount(0);
@@ -149,6 +150,21 @@ test("summary slide donuts have side legend, slice labels and right-of-chart lay
   expect(legendBox).not.toBeNull();
   if (svgBox && legendBox) {
     expect(svgBox.x + svgBox.width).toBeLessThanOrEqual(legendBox.x + 4);
+  }
+
+  const donutCards = page.locator(".donut-card");
+  const donutCount = await donutCards.count();
+  for (let i = 0; i < donutCount; i += 1) {
+    const bodyBox = await donutCards.nth(i).locator(".donut-body").boundingBox();
+    const chartBox = await donutCards.nth(i).locator(".donut-chart-wrap").boundingBox();
+    const cardLegendBox = await donutCards.nth(i).locator(".donut-legend").boundingBox();
+    expect(bodyBox).not.toBeNull();
+    expect(chartBox).not.toBeNull();
+    expect(cardLegendBox).not.toBeNull();
+    if (bodyBox && chartBox && cardLegendBox) {
+      expect(chartBox.width + 1).toBeGreaterThanOrEqual(bodyBox.width * 0.7);
+      expect(chartBox.x + chartBox.width).toBeLessThanOrEqual(cardLegendBox.x + 4);
+    }
   }
 
   // Per-slice annotation rendered (label + %)
@@ -190,6 +206,65 @@ test("summary slide donuts have side legend, slice labels and right-of-chart lay
       expect(partBox.y).toBeGreaterThanOrEqual(stageBox.y);
       expect(partBox.x + partBox.width).toBeLessThanOrEqual(stageBox.x + stageBox.width + 1);
       expect(partBox.y + partBox.height).toBeLessThanOrEqual(stageBox.y + stageBox.height + 1);
+    }
+  }
+});
+
+test("summary donut labels are enlarged while staying inside the chart area", async ({ page }) => {
+  await page.goto("/slide-show-data-portal/");
+  await page.getByRole("button", { name: "暫停" }).click();
+  const nextBtn = page.locator("button.control-nav[aria-label='下一頁']");
+  await nextBtn.click();
+  await nextBtn.click();
+  await nextBtn.click();
+  await expect(page.getByRole("heading", { name: "樓宇總覽" })).toBeVisible();
+  await page.waitForTimeout(1000);
+
+  const svg = page.locator(".donut-card").first().locator("svg.donut-svg");
+  const labels = svg.locator("text.donut-slice-label");
+  const svgBox = await svg.boundingBox();
+  expect(svgBox).not.toBeNull();
+  const count = await labels.count();
+  expect(count).toBeGreaterThan(0);
+  for (let i = 0; i < count; i += 1) {
+    const label = labels.nth(i);
+    const fontSize = Number.parseFloat(await label.evaluate((el) => getComputedStyle(el).fontSize));
+    const labelBox = await label.boundingBox();
+    expect(fontSize).toBeGreaterThanOrEqual(18);
+    expect(labelBox).not.toBeNull();
+    if (svgBox && labelBox) {
+      expect(labelBox.x).toBeGreaterThanOrEqual(svgBox.x);
+      expect(labelBox.y).toBeGreaterThanOrEqual(svgBox.y);
+      expect(labelBox.x + labelBox.width).toBeLessThanOrEqual(svgBox.x + svgBox.width + 1);
+      expect(labelBox.y + labelBox.height).toBeLessThanOrEqual(svgBox.y + svgBox.height + 1);
+    }
+  }
+});
+
+test("duration donut labels spread without overlap", async ({ page }) => {
+  await page.goto("/slide-show-data-portal/");
+  await page.getByRole("button", { name: "暫停" }).click();
+  const nextBtn = page.locator("button.control-nav[aria-label='下一頁']");
+  await nextBtn.click();
+  await nextBtn.click();
+  await nextBtn.click();
+  await expect(page.getByRole("heading", { name: "樓宇總覽" })).toBeVisible();
+  await page.waitForTimeout(1000);
+
+  const durationCard = page.locator(".donut-card", { has: page.getByRole("heading", { name: "停留時間分佈" }) });
+  const labels = durationCard.locator("text.donut-slice-label");
+  const labelCount = await labels.count();
+  expect(labelCount).toBeGreaterThan(1);
+  const polylineCount = await durationCard.locator("polyline").count();
+  expect(polylineCount).toBeLessThan(labelCount);
+  for (let i = 1; i < labelCount; i += 1) {
+    const prev = await labels.nth(i - 1).boundingBox();
+    const curr = await labels.nth(i).boundingBox();
+    expect(prev).not.toBeNull();
+    expect(curr).not.toBeNull();
+    if (prev && curr) {
+      const separated = curr.y >= prev.y + prev.height || prev.y >= curr.y + curr.height || curr.x >= prev.x + prev.width || prev.x >= curr.x + curr.width;
+      expect(separated).toBe(true);
     }
   }
 });
@@ -300,6 +375,118 @@ test("floor-grid slides display floor rows in ascending visual order", async ({ 
       expect(curr.y).toBeGreaterThanOrEqual(prev.y + prev.height - PX_TOLERANCE);
     }
   }
+});
+
+test("floor-grid labels and empty cells use enhanced readable styling", async ({ page }) => {
+  await page.goto("/slide-show-data-portal/");
+  await page.getByRole("button", { name: "暫停" }).click();
+  await expect(page.getByRole("heading", { name: "1至10樓" })).toBeVisible();
+
+  const floorLabel = page.locator("article.slide").first().locator(".floor-row .floor-label").first();
+  const unitHeader = page.locator("article.slide").first().locator(".unit-header").first();
+  const emptyCell = page.locator("article.slide").first().locator(".unit-square.warning-empty").first();
+
+  await expect(floorLabel).toBeVisible();
+  await expect(unitHeader).toBeVisible();
+  await expect(emptyCell).toBeVisible();
+
+  const floorLabelFont = Number.parseFloat(await floorLabel.evaluate((el) => getComputedStyle(el).fontSize));
+  const unitHeaderFont = Number.parseFloat(await unitHeader.evaluate((el) => getComputedStyle(el).fontSize));
+  expect(floorLabelFont).toBeGreaterThanOrEqual(18);
+  expect(unitHeaderFont).toBeGreaterThanOrEqual(18);
+
+  for (const locator of [floorLabel, unitHeader]) {
+    const box = await locator.boundingBox();
+    const scroll = await locator.evaluate((el) => ({ width: el.scrollWidth, height: el.scrollHeight }));
+    expect(box).not.toBeNull();
+    if (box) {
+      expect(scroll.width).toBeLessThanOrEqual(Math.ceil(box.width) + 1);
+      expect(scroll.height).toBeLessThanOrEqual(Math.ceil(box.height) + 1);
+    }
+  }
+
+  const unitHeaderBg = await unitHeader.evaluate((el) => getComputedStyle(el).backgroundImage || getComputedStyle(el).backgroundColor);
+  const emptyBg = await emptyCell.evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(unitHeaderBg).toContain("187, 247, 208");
+  expect(emptyBg).toContain("226, 232, 240");
+
+  await page.locator("button.control-nav[aria-label='下一頁']").click();
+  await expect(page.getByRole("heading", { name: "11至20樓" })).toBeVisible();
+  const activeCell = page.locator("article.slide").nth(1).locator(".unit-square.warning-active").first();
+  await expect(activeCell).toBeVisible();
+  const activeBg = await activeCell.evaluate((el) => getComputedStyle(el).backgroundImage || getComputedStyle(el).backgroundColor);
+  expect(activeBg).toContain("217, 119, 6");
+});
+
+test("date-session flat cells are white, detailed, and magnify on hover", async ({ page }) => {
+  await page.goto("/slide-show-data-portal/");
+  await page.getByRole("button", { name: "暫停" }).click();
+  const nextBtn = page.locator("button.control-nav[aria-label='下一頁']");
+  await nextBtn.click();
+  await nextBtn.click();
+  await expect(page.getByRole("heading", { name: "21至31樓" })).toBeVisible();
+  await page.waitForTimeout(1000);
+
+  const filledCell = page.locator("article.slide").nth(2).locator(".floor-row", { hasText: "31樓" }).locator(".unit-square").nth(7);
+  await expect(filledCell).toBeVisible();
+  await expect(filledCell).toHaveClass(/warning-filled/);
+  await expect(filledCell).toContainText("05/20/2026");
+  await expect(filledCell).toContainText("AM");
+  await expect(filledCell).toContainText("05/20/2026 AM");
+  await expect(filledCell).toContainText("進入 --:-- | 離開 --:--");
+  await expect(filledCell).toContainText("人數 6");
+  await expect(filledCell).toContainText("民安隊人數 0");
+  const bgColor = await filledCell.evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(bgColor).toBe("rgb(255, 255, 255)");
+
+  const beforeBox = await filledCell.boundingBox();
+  const beforeFont = Number.parseFloat(await filledCell.locator(".unit-details").evaluate((el) => getComputedStyle(el).fontSize));
+  expect(beforeBox).not.toBeNull();
+  await filledCell.hover();
+  await expect.poll(async () => {
+    const transform = await filledCell.evaluate((el) => getComputedStyle(el).transform);
+    return Number.parseFloat(transform.match(/^matrix\(([^,]+)/)?.[1] ?? "1");
+  }).toBeGreaterThanOrEqual(1.9);
+  const afterTransform = await filledCell.evaluate((el) => getComputedStyle(el).transform);
+  const afterFont = Number.parseFloat(await filledCell.locator(".unit-details").evaluate((el) => getComputedStyle(el).fontSize));
+  const scaleX = Number.parseFloat(afterTransform.match(/^matrix\(([^,]+)/)?.[1] ?? "1");
+  const scaleY = Number.parseFloat(afterTransform.match(/^matrix\([^,]+,\s*[^,]+,\s*[^,]+,\s*([^,]+)/)?.[1] ?? "1");
+  expect(scaleX).toBeGreaterThanOrEqual(1.9);
+  expect(scaleY).toBeGreaterThanOrEqual(2.4);
+  expect(afterFont).toBeGreaterThan(beforeFont);
+});
+
+test("floor grid shows non-selected session flat records as empty cells with detail", async ({ page }) => {
+  await page.goto("/slide-show-data-portal/");
+  await page.getByRole("button", { name: "暫停" }).click();
+  await expect(page.getByRole("heading", { name: "1至10樓" })).toBeVisible();
+
+  const fallbackCell = page.locator("article.slide").first().locator(".floor-row", { hasText: "10樓" }).locator(".unit-square").nth(7);
+  await expect(fallbackCell).toBeVisible();
+  await expect(fallbackCell).toHaveClass(/warning-empty/);
+  await expect(fallbackCell).toContainText("05/21/2026 PM");
+  await expect(fallbackCell).toContainText("進入 --:-- | 離開 --:--");
+  await expect(fallbackCell).toContainText("人數 5");
+});
+
+test("paused slideshow supports mouse-wheel slide navigation", async ({ page }) => {
+  await page.goto("/slide-show-data-portal/");
+  await expect(page.getByRole("heading", { name: "1至10樓" })).toBeVisible();
+
+  const stage = page.locator(".kiosk-stage");
+  const track = page.locator(".slide-track");
+  const initialTransform = await track.evaluate((el) => getComputedStyle(el).transform);
+  await stage.hover();
+  await page.mouse.wheel(0, 800);
+  await expect.poll(() => track.evaluate((el) => getComputedStyle(el).transform)).toBe(initialTransform);
+
+  await page.getByRole("button", { name: "暫停" }).click();
+  await page.mouse.wheel(0, 800);
+  await expect.poll(() => track.evaluate((el) => getComputedStyle(el).transform)).not.toBe(initialTransform);
+  const secondSlideTransform = await track.evaluate((el) => getComputedStyle(el).transform);
+
+  await page.mouse.wheel(0, -800);
+  await expect.poll(() => track.evaluate((el) => getComputedStyle(el).transform)).not.toBe(secondSlideTransform);
 });
 
 test("control bar renders two rows with selects on top and buttons below", async ({ page }) => {
